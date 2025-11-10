@@ -1,5 +1,7 @@
-package com.example.hmt.patient;
+package com.example.hmt.service;
 
+import com.example.hmt.entity.Patient;
+import com.example.hmt.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,23 +15,23 @@ public class PatientService {
     private PatientRepository patientRepository;
 
     // Get all patients
-    public List<PatientModel> getAllPatients() {
+    public List<Patient> getAllPatients() {
         return patientRepository.findAll();
     }
 
     // Get one patient by their ID
-    public Optional<PatientModel> getPatientById(Long id) {
+    public Optional<Patient> getPatientById(Long id) {
         return patientRepository.findById(id);
     }
 
     // Create a new patient
-    public PatientModel createPatient(PatientModel patient) {
+    public Patient createPatient(Patient patient) {
         return patientRepository.save(patient);
     }
 
     // Update an existing patient
-    public PatientModel updatePatient(Long id, PatientModel patientDetails) {
-        PatientModel patient = patientRepository.findById(id)
+    public Patient updatePatient(Long id, Patient patientDetails) {
+        Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Patient not found with id: " + id));
 
         // Update the fields
@@ -45,7 +47,7 @@ public class PatientService {
 
     // Delete a patient
     public void deletePatient(Long id) {
-        PatientModel patient = patientRepository.findById(id)
+        Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Patient not found with id: " + id));
 
         patientRepository.delete(patient);

@@ -1,5 +1,7 @@
-package com.example.hmt.doctor;
+package com.example.hmt.controller;
 
+import com.example.hmt.entity.Doctor;
+import com.example.hmt.service.DoctorService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +17,13 @@ public class DoctorController {
 
     // GET /api/v1/doctors
     @GetMapping
-    public List<DoctorModel> getAllDoctors() {
+    public List<Doctor> getAllDoctors() {
         return doctorService.getAllDoctors();
     }
 
     // GET /api/v1/doctors/1
     @GetMapping("/{id}")
-    public ResponseEntity<DoctorModel> getDoctorById(@PathVariable Long id) {
+    public ResponseEntity<Doctor> getDoctorById(@PathVariable Long id) {
         return doctorService.getDoctorById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -29,15 +31,15 @@ public class DoctorController {
 
     // POST /api/v1/doctors
     @PostMapping
-    public DoctorModel createDoctor(@Valid  @RequestBody DoctorModel doctor) {
+    public Doctor createDoctor(@Valid  @RequestBody Doctor doctor) {
         return doctorService.createDoctor(doctor);
     }
 
     // PUT /api/v1/doctors/1
     @PutMapping("/{id}")
-    public ResponseEntity<DoctorModel> updateDoctor(@PathVariable Long id, @Valid @RequestBody DoctorModel doctorDetails) {
+    public ResponseEntity<Doctor> updateDoctor(@PathVariable Long id, @Valid @RequestBody Doctor doctorDetails) {
         try {
-            DoctorModel updatedDoctor = doctorService.updateDoctor(id, doctorDetails);
+            Doctor updatedDoctor = doctorService.updateDoctor(id, doctorDetails);
             return ResponseEntity.ok(updatedDoctor);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

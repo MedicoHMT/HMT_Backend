@@ -1,7 +1,5 @@
-package com.example.hmt.appointment;
+package com.example.hmt.entity;
 
-import com.example.hmt.doctor.DoctorModel;
-import com.example.hmt.patient.PatientModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-public class AppointmentModel {
+public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,11 +25,11 @@ public class AppointmentModel {
     @NotNull(message = "Appointment must have a patient")
     @ManyToOne(fetch = FetchType.LAZY) // Many appointments to ONE patient
     @JoinColumn(name = "patient_id", nullable = false) // Creates a 'patient_id' column
-    private PatientModel patient;
+    private Patient patient;
 
     // --- Relationship with Doctor ---
     @NotNull(message = "Appointment must have a doctor")
     @ManyToOne(fetch = FetchType.LAZY) // Many appointments to ONE doctor
     @JoinColumn(name = "doctor_id", nullable = false) // Creates a 'doctor_id' column
-    private DoctorModel doctor;
+    private Doctor doctor;
 }

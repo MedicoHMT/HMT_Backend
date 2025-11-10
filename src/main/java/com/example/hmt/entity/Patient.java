@@ -1,4 +1,4 @@
-package com.example.hmt.patient;
+package com.example.hmt.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,7 +12,7 @@ import java.time.LocalDate;
 
 @Data
 @Entity
-public class PatientModel {
+public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-incrementing ID
     private Long id;

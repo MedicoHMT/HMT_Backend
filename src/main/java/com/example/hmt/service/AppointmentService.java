@@ -1,9 +1,11 @@
-package com.example.hmt.appointment;
+package com.example.hmt.service;
 
-import com.example.hmt.doctor.DoctorModel;
-import com.example.hmt.doctor.DoctorRepository;
-import com.example.hmt.patient.PatientModel;
-import com.example.hmt.patient.PatientRepository;
+import com.example.hmt.entity.Doctor;
+import com.example.hmt.repository.DoctorRepository;
+import com.example.hmt.entity.Appointment;
+import com.example.hmt.entity.Patient;
+import com.example.hmt.repository.PatientRepository;
+import com.example.hmt.repository.AppointmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,35 +24,35 @@ public class AppointmentService {
     @Autowired
     private DoctorRepository doctorRepository; // Need this to find doctors
 
-    public List<AppointmentModel> getAllAppointments() {
+    public List<Appointment> getAllAppointments() {
         return appointmentRepository.findAll();
     }
 
-    public Optional<AppointmentModel> getAppointmentById(Long id) {
+    public Optional<Appointment> getAppointmentById(Long id) {
         return appointmentRepository.findById(id);
     }
 
-    public List<AppointmentModel> getAppointmentsForPatient(Long patientId) {
+    public List<Appointment> getAppointmentsForPatient(Long patientId) {
         return appointmentRepository.findByPatientId(patientId);
     }
 
-    public List<AppointmentModel> getAppointmentsForDoctor(Long doctorId) {
+    public List<Appointment> getAppointmentsForDoctor(Long doctorId) {
         return appointmentRepository.findByDoctorId(doctorId);
     }
 
     // --- This is the new complex logic ---
     // The incoming 'appointment' object will only have IDs for patient/doctor
-    public AppointmentModel createAppointment(AppointmentModel appointment) {
+    public Appointment createAppointment(Appointment appointment) {
         // 1. Get the patient ID from the incoming appointment object
         Long patientId = appointment.getPatient().getId();
         // 2. Find the *full* patient object from the database
-        PatientModel patient = patientRepository.findById(patientId)
+        Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
         // 3. Get the doctor ID
         Long doctorId = appointment.getDoctor().getId();
         // 4. Find the *full* doctor object
-        DoctorModel doctor = doctorRepository.findById(doctorId)
+        Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Doctor not found"));
 
         // 5. Set the full objects on the appointment
