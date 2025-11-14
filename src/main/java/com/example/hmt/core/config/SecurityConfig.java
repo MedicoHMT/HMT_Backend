@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/register").hasAuthority("SUPER_ADMIN")
                         .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/v1/doctor/**").hasAuthority("DOCTOR")
-                        .requestMatchers("/api/v1/patients/**").hasAuthority("PATIENT")
+                        .requestMatchers("/api/v1/patients/**").hasAnyAuthority("PATIENT", "ADMIN")
                         .requestMatchers("/api/v1/staff/**").hasAuthority("STAFF")
 
                         // Everything else requires authentication

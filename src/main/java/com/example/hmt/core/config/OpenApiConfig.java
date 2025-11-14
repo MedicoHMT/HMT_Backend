@@ -6,6 +6,9 @@ import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 
 @Configuration
 public class OpenApiConfig {
@@ -13,7 +16,20 @@ public class OpenApiConfig {
     // 🔷 Global Swagger Info
     @Bean
     public OpenAPI baseOpenAPI() {
+        // Define security scheme name
+        final String securitySchemeName = "bearerAuth";
+
         return new OpenAPI()
+                .components(new Components()
+                        .addSecuritySchemes(securitySchemeName,
+                                new SecurityScheme()
+                                        .name("Authorization")
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")
+                        )
+                )
+                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .info(new Info()
                         .title("Hospital Management System API")
                         .version("1.0")
