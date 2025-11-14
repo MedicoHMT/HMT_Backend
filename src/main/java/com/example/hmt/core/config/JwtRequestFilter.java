@@ -2,6 +2,7 @@ package com.example.hmt.core.config;
 
 import com.example.hmt.core.auth.model.User;
 import com.example.hmt.core.auth.repository.UserRepository;
+import com.example.hmt.core.tenant.TenantContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,10 +33,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         String username = null;
         String jwt = null;
+        Long hospitalId = null;
 
         if (header != null && header.startsWith("Bearer ")) {
             jwt = header.substring(7);
             username = jwtService.extractUsername(jwt);
+            hospitalId = jwtService.extractHospitalId(jwt);
+        }
+
+        if (hospitalId != null) {
+            TenantContext.setHospitalId(hospitalId);
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -47,9 +54,28 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                                 List.of(new SimpleGrantedAuthority(user.getRole().name()))
                         );
                 SecurityContextHolder.getContext().setAuthentication(auth);
+            } else {
+                // User not found in DB or DB-based validation failed.
+                // Validate token signature/expiration and build auth from token claims.
+                if (jwt != null && jwtService.isTokenValid(jwt)) {
+                    String roleClaim = jwtService.extractRole(jwt);
+                    if (roleClaim != null) {
+                        UsernamePasswordAuthenticationToken auth =
+                                new UsernamePasswordAuthenticationToken(
+                                        username, null,
+                                        List.of(new SimpleGrantedAuthority(roleClaim))
+                                );
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    }
+                }
             }
         }
 
-        chain.doFilter(request, response);
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            // Clear tenant context to avoid leaking between requests
+            TenantContext.clear();
+        }
     }
 }

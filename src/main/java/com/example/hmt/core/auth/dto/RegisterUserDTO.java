@@ -8,4 +8,6 @@ public class RegisterUserDTO {
     private String username;
     private String password;
     private Role role;
+    private Long hospitalId;
+    private String hospitalName;
 }

@@ -17,10 +17,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+    @Column(name = "hospital_id", nullable = true)
+    private Long hospitalId;
+
+
     @Column(unique = true)
     private String username;
 
     private String password;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
 }
