@@ -1,5 +1,6 @@
 package com.example.hmt.patient;
 
+import com.example.hmt.patient.dto.PatientDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ public class PatientController {
 
     // POST /api/v1/patients  (Create a new patient)
     @PostMapping
-    public Patient createPatient(@Valid @RequestBody Patient patient) {
+    public PatientDTO createPatient(@Valid @RequestBody PatientDTO patient) {
         return patientService.createPatient(patient);
     }
 
