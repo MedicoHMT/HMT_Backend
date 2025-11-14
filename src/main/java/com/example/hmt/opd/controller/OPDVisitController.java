@@ -1,52 +1,45 @@
 package com.example.hmt.opd.controller;
 
-
-import com.example.hmt.opd.model.OPDVisit;
-import com.example.hmt.core.enums.VisitStatus;
+import com.example.hmt.core.tenant.TenantContext;
+import com.example.hmt.opd.dto.OPDVisitRequestDTO;
+import com.example.hmt.opd.dto.OPDVisitResponseDTO;
 import com.example.hmt.opd.service.OPDVisitService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/opd")
-@RequiredArgsConstructor
-@Tag(name = "OPD Management", description = "Endpoints for managing OPD visits")
+@RequestMapping("/api/v1/opd/visits")
+@Tag(name = "OPD Visits")
 public class OPDVisitController {
 
-    private final OPDVisitService opdVisitService;
+    private final OPDVisitService visitService;
+
+    public OPDVisitController(OPDVisitService visitService) {
+        this.visitService = visitService;
+    }
 
     @PostMapping
-    @Operation(summary = "Create a new OPD visit")
-    public ResponseEntity<OPDVisit> createVisit(@RequestBody OPDVisit opdVisit) {
-        return ResponseEntity.ok(opdVisitService.createVisit(opdVisit));
+    public ResponseEntity<OPDVisitResponseDTO> createVisit(
+            @Valid @RequestBody OPDVisitRequestDTO dto
+    ) {
+        return ResponseEntity.ok(visitService.createVisit(dto));
     }
 
-    @GetMapping
-    @Operation(summary = "Get all OPD visits")
-    public ResponseEntity<List<OPDVisit>> getAllVisits() {
-        return ResponseEntity.ok(opdVisitService.getAllVisits());
+    @GetMapping()
+    public ResponseEntity<List<OPDVisitResponseDTO>> getVisit() {
+        Long hospitalId = TenantContext.getHospitalId();
+        List<OPDVisitResponseDTO> visits = visitService.getAllVisit(hospitalId);
+        return ResponseEntity.ok(visits);
     }
-
-    @GetMapping("/doctor/{doctorId}")
-    @Operation(summary = "Get OPD visits for a doctor")
-    public ResponseEntity<List<OPDVisit>> getByDoctor(@PathVariable Long doctorId) {
-        return ResponseEntity.ok(opdVisitService.getVisitsByDoctor(doctorId));
-    }
-
-    @GetMapping("/patient/{patientId}")
-    @Operation(summary = "Get OPD visits for a patient")
-    public ResponseEntity<List<OPDVisit>> getByPatient(@PathVariable Long patientId) {
-        return ResponseEntity.ok(opdVisitService.getVisitsByPatient(patientId));
-    }
-
-    @PatchMapping("/{id}/status")
-    @Operation(summary = "Update OPD visit status")
-    public ResponseEntity<OPDVisit> updateStatus(@PathVariable Long id, @RequestParam VisitStatus status) {
-        return ResponseEntity.ok(opdVisitService.updateStatus(id, status));
+    @GetMapping("/{id}")
+    public ResponseEntity<OPDVisitResponseDTO> getVisit(@PathVariable Long id) {
+        Long hospitalId = TenantContext.getHospitalId();
+        return visitService.getVisitById(id, hospitalId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

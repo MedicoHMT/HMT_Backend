@@ -17,6 +17,9 @@ public class Patient {
     @Column(name = "hospital_id", nullable = false)
     private Long hospitalId;
 
+    // Public patient identifier (UHID)
+    @Column(name = "uhid", unique = true)
+    private String uhid;
 
     @NotBlank(message = "First name cannot be blank")
     @Size(min = 2, message = "First name must be at least 2 characters")

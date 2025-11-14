@@ -40,10 +40,10 @@ public class SecurityConfig {
                         // Role-based access
 
                         .requestMatchers("/api/auth/register").hasAuthority("SUPER_ADMIN")
-                        .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/v1/doctor/**").hasAuthority("DOCTOR")
-                        .requestMatchers("/api/v1/patients/**").hasAuthority("PATIENT")
-                        .requestMatchers("/api/v1/staff/**").hasAuthority("STAFF")
+                        .requestMatchers("/api/v1/admin/**").hasAnyAuthority("SUPER_ADMIN","ADMIN")
+                        .requestMatchers("/api/v1/doctor/**").hasAnyAuthority("SUPER_ADMIN","ADMIN","STAFF")
+                        .requestMatchers("/api/v1/patients/**").hasAnyAuthority("SUPER_ADMIN","STAFF","DOCTOR", "ADMIN")
+                        .requestMatchers("/api/v1/opd/**").hasAnyAuthority("SUPER_ADMIN","ADMIN","STAFF")
 
                         // Everything else requires authentication
                         .anyRequest().authenticated())

@@ -1,7 +1,10 @@
 package com.example.hmt.core.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,14 +16,26 @@ public class OpenApiConfig {
     // 🔷 Global Swagger Info
     @Bean
     public OpenAPI baseOpenAPI() {
+        // Define security scheme name
+        final String securitySchemeName = "bearerAuth";
+
         return new OpenAPI()
+                .components(new Components()
+                        .addSecuritySchemes(securitySchemeName,
+                                new SecurityScheme()
+                                        .name("Authorization")
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")
+                        )
+                )
+                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .info(new Info()
                         .title("Hospital Management System API")
                         .version("1.0")
                         .description("API Documentation for HMS – OPD, IPD, Appointments, Auth, Doctor, Patient")
                         .contact(new Contact().name("Priyanshu Narwaria")));
     }
-
     // 🔹 Auth APIs → /api/auth/**
     @Bean
     public GroupedOpenApi authApi() {
@@ -63,13 +78,13 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("OPD")
                 .pathsToMatch(
-                        "/api/opd/visits/**",
-                        "/api/opd/vitals/**",
-                        "/api/opd/assessment/**",
-                        "/api/opd/prescriptions/**",
-                        "/api/opd/queue/**",
-                        "/api/opd/investigations/**",
-                        "/api/opd/followup/**"
+                        "/api/v1/opd/visits/**",
+                        "/api/v1/opd/vitals/**",
+                        "/api/v1/opd/assessment/**",
+                        "/api/v1/opd/prescriptions/**",
+                        "/api/v1/opd/queue/**",
+                        "/api/v1/opd/investigations/**",
+                        "/api/v1/opd/followup/**"
                 )
                 .build();
     }
