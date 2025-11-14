@@ -88,7 +88,7 @@ public class OpenApiConfig {
     public GroupedOpenApi adminApi() {
         return GroupedOpenApi.builder()
                 .group("Admin")
-                .pathsToMatch("/api/admin/**")
+                .pathsToMatch("/api/v1/admin/**")
                 .build();
     }
 
@@ -97,7 +97,7 @@ public class OpenApiConfig {
     public GroupedOpenApi hospitalApi() {
         return GroupedOpenApi.builder()
                 .group("Hospital Management")
-                .pathsToMatch("/api/hospitals/**")
+                .pathsToMatch("/api/v1/hospitals/**")
                 .build();
     }
 }

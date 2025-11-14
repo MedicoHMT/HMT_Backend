@@ -14,29 +14,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
 
     private final AuthService authService;
 
-    @PostMapping("/register")
+    @PostMapping("/api/auth/register")
     public ResponseEntity<String> register(@RequestBody RegisterUserDTO dto) {
         return ResponseEntity.ok(authService.register(dto));
     }
 
+    @PostMapping("/api/auth/login")
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthRequestDTO dto) {
+        return ResponseEntity.ok(authService.login(dto));
+    }
+
     // ADMINs can register users for their own hospital
     @PreAuthorize("hasAuthority('ADMIN')")
-    @PostMapping("/register/hospital")
+    @PostMapping("/api/v1/admin/register")
     public ResponseEntity<String> registerForAdminHospital(@RequestBody RegisterUserDTO dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String adminUsername = authentication.getName();
         return ResponseEntity.ok(authService.registerForAdminHospital(adminUsername, dto));
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthRequestDTO dto) {
-        return ResponseEntity.ok(authService.login(dto));
     }
 }
