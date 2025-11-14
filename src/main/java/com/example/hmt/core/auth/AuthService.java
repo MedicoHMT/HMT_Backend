@@ -3,6 +3,7 @@ package com.example.hmt.core.auth;
 import com.example.hmt.core.auth.dto.AuthRequestDTO;
 import com.example.hmt.core.auth.dto.AuthResponseDTO;
 import com.example.hmt.core.auth.dto.RegisterUserDTO;
+import com.example.hmt.core.auth.dto.RegisterUserPerHospitalDTO;
 import com.example.hmt.core.auth.model.Role;
 import com.example.hmt.core.auth.model.User;
 import com.example.hmt.core.auth.repository.UserRepository;
@@ -89,7 +90,7 @@ public class AuthService {
     }
 
     // Register a user into the authenticated ADMIN's hospital
-    public String registerForAdminHospital(String adminUsername, RegisterUserDTO dto) {
+    public String registerForAdminHospital(String adminUsername, RegisterUserPerHospitalDTO dto) {
         // Resolve admin by username+current tenant hospitalId to avoid duplicate usernames across hospitals
         Long currentHospitalId = TenantContext.getHospitalId();
         if (currentHospitalId == null) {
