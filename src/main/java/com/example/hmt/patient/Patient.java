@@ -1,9 +1,6 @@
 package com.example.hmt.patient;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -17,12 +14,17 @@ public class Patient {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-incrementing ID
     private Long id;
 
+    @Column(name = "hospital_id", nullable = false)
+    private Long hospitalId;
+
+
     @NotBlank(message = "First name cannot be blank")
     @Size(min = 2, message = "First name must be at least 2 characters")
     private String firstName;
 
     @NotBlank(message = "Last name cannot be blank")
     private String lastName;
+
     private LocalDate dateOfBirth;
     private String gender;
     @NotBlank(message = "Contact number cannot be blank")

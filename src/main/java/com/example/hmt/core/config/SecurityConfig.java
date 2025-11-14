@@ -3,6 +3,7 @@ package com.example.hmt.core.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -32,9 +34,12 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
                         // Public endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll()
+
 
                         // Role-based access
+
+                        .requestMatchers("/api/auth/register").hasAuthority("SUPER_ADMIN")
                         .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/v1/doctor/**").hasAuthority("DOCTOR")
                         .requestMatchers("/api/v1/patients/**").hasAuthority("PATIENT")
