@@ -17,14 +17,21 @@ public class OPDVisit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String opdId;
+    private String opdType;         // eg. "General", "Emergency", "Follow-up"
+
+    @Enumerated(EnumType.STRING)
+    private VisitStatus status = VisitStatus.ACTIVE;
+
+    private LocalDate visitDate;
+    private LocalTime visitTime;
+
+
+    private Double consultationFee;
+
     // Added for multi-tenant support
     @Column(name = "hospital_id", nullable = false)
     private Long hospitalId;
-
-
-    // OPD Registration / UHID
-    @Column(nullable = false)
-    private String uhid;
 
     // Patient relationship
     @ManyToOne
@@ -35,18 +42,4 @@ public class OPDVisit {
     @ManyToOne
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
-
-    private LocalDate visitDate;
-    private LocalTime visitTime;
-
-    // Queue Token Number
-    private Integer tokenNumber;
-
-    private String opdNumber;
-
-    @Enumerated(EnumType.STRING)
-    private VisitStatus status = VisitStatus.ACTIVE;
-
-    private Double consultationFee;
-
 }

@@ -1,41 +1,96 @@
 package com.example.hmt.opd.service;
 
-
+import com.example.hmt.core.tenant.TenantContext;
+import com.example.hmt.doctor.Doctor;
+import com.example.hmt.doctor.DoctorRepository;
+import com.example.hmt.opd.dto.OPDVisitRequestDTO;
+import com.example.hmt.opd.dto.OPDVisitResponseDTO;
 import com.example.hmt.opd.model.OPDVisit;
-import com.example.hmt.core.enums.VisitStatus;
 import com.example.hmt.opd.repository.OPDVisitRepository;
-import lombok.RequiredArgsConstructor;
+import com.example.hmt.patient.Patient;
+import com.example.hmt.patient.PatientRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class OPDVisitService {
-    private final OPDVisitRepository opdVisitRepository;
 
-    public OPDVisit createVisit(OPDVisit opdVisit) {
-        opdVisit.setVisitDate(LocalDate.now());
-        return opdVisitRepository.save(opdVisit);
+    private final OPDVisitRepository visitRepository;
+    private final PatientRepository patientRepository;
+    private final DoctorRepository doctorRepository;
+
+    public OPDVisitService(OPDVisitRepository visitRepository,
+                           PatientRepository patientRepository,
+                           DoctorRepository doctorRepository) {
+        this.visitRepository = visitRepository;
+        this.patientRepository = patientRepository;
+        this.doctorRepository = doctorRepository;
     }
 
-    public List<OPDVisit> getAllVisits() {
-        return opdVisitRepository.findAll();
+
+    @Transactional
+    public OPDVisitResponseDTO createVisit(OPDVisitRequestDTO dto) {
+
+        Long hospitalId = TenantContext.getHospitalId();
+        if (hospitalId == null)
+            throw new IllegalArgumentException("Invalid hospital session");
+
+        Patient patient = patientRepository.findById(dto.getPatientId())
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        Doctor doctor = doctorRepository.findById(dto.getDoctorId())
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        OPDVisit visit = new OPDVisit();
+        visit.setHospitalId(hospitalId);
+        visit.setPatient(patient);
+        visit.setDoctor(doctor);
+
+        visit.setOpdType(dto.getOpdType());
+        visit.setConsultationFee(dto.getConsultationFee());
+        visit.setVisitDate(LocalDate.now());
+        visit.setVisitTime(LocalTime.now());
+
+        // Save once to get ID
+        visit = visitRepository.save(visit);
+
+        // Generate OPD ID (formatted)
+        String opdId = "OPD-" + visit.getVisitDate().getYear() + "-" + String.format("%06d", visit.getId());
+        visit.setOpdId(opdId);
+
+        // Update record with OPD ID
+        visit = visitRepository.save(visit);
+
+        return mapToDTO(visit);
     }
 
-    public List<OPDVisit> getVisitsByDoctor(Long doctorId) {
-        return opdVisitRepository.findByDoctorId(doctorId);
+    public Optional<OPDVisitResponseDTO> getVisitById(Long id, Long hospitalId) {
+        return visitRepository.findByIdAndHospitalId(id, hospitalId).map(this::mapToDTO);
+    }
+    public List<OPDVisitResponseDTO> getAllVisit(Long hospitalId) {
+        List<OPDVisit> visits = visitRepository.findAllByHospitalId(hospitalId);
+        return visits.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
-    public List<OPDVisit> getVisitsByPatient(Long patientId) {
-        return opdVisitRepository.findByPatientId(patientId);
-    }
+    private OPDVisitResponseDTO mapToDTO(OPDVisit visit) {
+        OPDVisitResponseDTO dto = new OPDVisitResponseDTO();
 
-    public OPDVisit updateStatus(Long id, VisitStatus status) {
-        OPDVisit visit = opdVisitRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Visit not found"));
-        visit.setStatus(status);
-        return opdVisitRepository.save(visit);
+        dto.setOpdId(visit.getOpdId());
+        dto.setOpdType(visit.getOpdType());
+        dto.setPatientId(visit.getPatient().getId());
+        dto.setDoctorId(visit.getDoctor().getId());
+        dto.setVisitDate(visit.getVisitDate());
+        dto.setVisitTime(visit.getVisitTime());
+        dto.setConsultationFee(visit.getConsultationFee());
+        dto.setPatientUhid(visit.getPatient().getUhid());
+        return dto;
     }
 }

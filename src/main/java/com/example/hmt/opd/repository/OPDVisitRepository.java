@@ -1,16 +1,13 @@
 package com.example.hmt.opd.repository;
 
-
 import com.example.hmt.opd.model.OPDVisit;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
-@Repository
 public interface OPDVisitRepository extends JpaRepository<OPDVisit, Long> {
-    List<OPDVisit> findByDoctorId(Long doctorId);
-    List<OPDVisit> findByPatientId(Long patientId);
-    List<OPDVisit> findByVisitDate(LocalDate date);
+
+    Optional<OPDVisit> findByIdAndHospitalId(Long id, Long hospitalId);
+    List<OPDVisit> findAllByHospitalId(Long hospitalId);
 }

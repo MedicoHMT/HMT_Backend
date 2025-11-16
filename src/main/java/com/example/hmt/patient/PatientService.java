@@ -1,12 +1,16 @@
 package com.example.hmt.patient;
 
 import com.example.hmt.core.tenant.TenantContext;
-import com.example.hmt.patient.dto.PatientDTO;
+import com.example.hmt.patient.dto.PatientRequestDTO;
+import com.example.hmt.patient.dto.PatientResponseDTO;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PatientService {
@@ -15,17 +19,18 @@ public class PatientService {
     private PatientRepository patientRepository;
 
     // Get all patients
-    public List<Patient> getAllPatients() {
-        return patientRepository.findAll();
+    public List<PatientResponseDTO> getAllPatients() {
+        return patientRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
     }
 
     // Get one patient by their ID
-    public Optional<Patient> getPatientById(Long id) {
-        return patientRepository.findById(id);
+    public Optional<PatientResponseDTO> getPatientById(Long id) {
+        return patientRepository.findById(id).map(this::toDto);
     }
 
     // Create a new patient
-    public PatientDTO createPatient(PatientDTO patient) {
+    @Transactional
+    public PatientResponseDTO createPatient(PatientRequestDTO patient) {
         Patient newPatient = new Patient();
         newPatient.setFirstName(patient.getFirstName());
         newPatient.setLastName(patient.getLastName());
@@ -39,16 +44,23 @@ public class PatientService {
             newPatient.setHospitalId(hospitalId);
         }
 
-        // Save and return the created Patient entity
-        return toPatientResponseDto(patientRepository.save(newPatient));
+
+        Patient saved = patientRepository.save(newPatient);
+
+        String newUhid = String.format("U-%d/%d/", saved.getId(), LocalDate.now().getYear());
+        newPatient.setUhid(newUhid);
+
+        // Save and return the created Patient DTO (without id/hospitalId)
+        saved = patientRepository.save(newPatient);
+        return toDto(saved);
     }
 
     // Update an existing patient
-    public Patient updatePatient(Long id, Patient patientDetails) {
+    public PatientResponseDTO updatePatient(Long id, PatientRequestDTO patientDetails) {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Patient not found with id: " + id));
 
-        // Update the fields
+        // Update the fields from DTO
         patient.setFirstName(patientDetails.getFirstName());
         patient.setLastName(patientDetails.getLastName());
         patient.setDateOfBirth(patientDetails.getDateOfBirth());
@@ -56,7 +68,8 @@ public class PatientService {
         patient.setContactNumber(patientDetails.getContactNumber());
         patient.setAddress(patientDetails.getAddress());
 
-        return patientRepository.save(patient);
+        Patient updated = patientRepository.save(patient);
+        return toDto(updated);
     }
 
     // Delete a patient
@@ -67,8 +80,9 @@ public class PatientService {
         patientRepository.delete(patient);
     }
 
-    private PatientDTO toPatientResponseDto(Patient p) {
-        PatientDTO d = new PatientDTO();
+    private PatientResponseDTO toDto(Patient p) {
+        PatientResponseDTO d = new PatientResponseDTO();
+        d.setUhid(p.getUhid());
         d.setFirstName(p.getFirstName());
         d.setLastName(p.getLastName());
         d.setDateOfBirth(p.getDateOfBirth());

@@ -1,6 +1,7 @@
 package com.example.hmt.patient;
 
-import com.example.hmt.patient.dto.PatientDTO;
+import com.example.hmt.patient.dto.PatientRequestDTO;
+import com.example.hmt.patient.dto.PatientResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +18,13 @@ public class PatientController {
 
     // GET /api/v1/patients  (Get all patients)
     @GetMapping
-    public List<Patient> getAllPatients() {
+    public List<PatientResponseDTO> getAllPatients() {
         return patientService.getAllPatients();
     }
 
     // GET /api/v1/patients/1  (Get patient by ID)
     @GetMapping("/{id}")
-    public ResponseEntity<Patient> getPatientById(@PathVariable Long id) {
+    public ResponseEntity<PatientResponseDTO> getPatientById(@PathVariable Long id) {
         return patientService.getPatientById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -31,15 +32,15 @@ public class PatientController {
 
     // POST /api/v1/patients  (Create a new patient)
     @PostMapping
-    public PatientDTO createPatient(@Valid @RequestBody PatientDTO patient) {
+    public PatientResponseDTO createPatient(@Valid @RequestBody PatientRequestDTO patient) {
         return patientService.createPatient(patient);
     }
 
     // PUT /api/v1/patients/1  (Update patient by ID)
     @PutMapping("/{id}")
-    public ResponseEntity<Patient> updatePatient(@PathVariable Long id, @Valid @RequestBody Patient patientDetails) {
+    public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Long id, @Valid @RequestBody PatientRequestDTO patientDetails) {
         try {
-            Patient updatedPatient = patientService.updatePatient(id, patientDetails);
+            PatientResponseDTO updatedPatient = patientService.updatePatient(id, patientDetails);
             return ResponseEntity.ok(updatedPatient);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -51,7 +52,7 @@ public class PatientController {
     public ResponseEntity<Void> deletePatient(@PathVariable Long id) {
         try {
             patientService.deletePatient(id);
-            return ResponseEntity.noContent().build(); // Standard for successful delete
+            return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
