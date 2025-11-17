@@ -17,6 +17,7 @@ public class OPDVisitResponseDTO {
     private LocalDate visitDate;
     private LocalTime visitTime;
     private Double consultationFee;
+    private String status;
 
     private String patientUhid;
 }

@@ -147,7 +147,7 @@ public class AuthService {
                         .build();
 
                 String token = jwtService.generateToken(superUser);
-                return new AuthResponseDTO(token, superUser.getRole().name());
+                return new AuthResponseDTO(token, superUser.getRole().name(),"");
             }
 
             throw new BadCredentialsException("User not found");
@@ -158,6 +158,11 @@ public class AuthService {
         }
 
         String token = jwtService.generateToken(user);
-        return new AuthResponseDTO(token, user.getRole().name());
+        Hospital hospital = hospitalRepository
+                .findById(user.getHospitalId())
+                .orElseThrow(() -> new RuntimeException("Hospital not found"));
+
+        String hospitalName = hospital.getName();
+        return new AuthResponseDTO(token, user.getRole().name(), hospitalName);
     }
 }

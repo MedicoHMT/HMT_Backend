@@ -25,7 +25,7 @@ public class OPDVitalsController {
     }
 
     @GetMapping("/{visitId}")
-    public ResponseEntity<OPDVitals> getVitals(@PathVariable Long visitId) {
+    public ResponseEntity<OPDVitals> getVitals(@PathVariable String visitId) {
         return vitalsService.getVitals(visitId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

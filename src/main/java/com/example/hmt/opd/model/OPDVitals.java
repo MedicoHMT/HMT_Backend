@@ -12,8 +12,8 @@ public class OPDVitals {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "visit_id", nullable = false, unique = true)
-    private OPDVisit visit;
+    @JoinColumn(name = "opd_id", referencedColumnName = "opd_id", nullable = false, unique = true)
+    private OPDVisit opdVisit;
 
     private Integer pulse;
     private Integer spo2;

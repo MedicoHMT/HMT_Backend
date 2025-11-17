@@ -24,8 +24,8 @@ public class PatientService {
     }
 
     // Get one patient by their ID
-    public Optional<PatientResponseDTO> getPatientById(Long id) {
-        return patientRepository.findById(id).map(this::toDto);
+    public Optional<PatientResponseDTO> getPatientById(String id) {
+        return patientRepository.findPatientByUhid(id).map(this::toDto);
     }
 
     // Create a new patient
@@ -47,7 +47,7 @@ public class PatientService {
 
         Patient saved = patientRepository.save(newPatient);
 
-        String newUhid = String.format("U-%d/%d/", saved.getId(), LocalDate.now().getYear());
+        String newUhid = String.format("U%d%d", LocalDate.now().getYear(), saved.getId());
         newPatient.setUhid(newUhid);
 
         // Save and return the created Patient DTO (without id/hospitalId)
@@ -73,9 +73,9 @@ public class PatientService {
     }
 
     // Delete a patient
-    public void deletePatient(Long id) {
-        Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Patient not found with id: " + id));
+    public void deletePatient(String uhid) {
+        Patient patient = patientRepository.findPatientByUhid(uhid)
+                .orElseThrow(() -> new RuntimeException("Patient not found with id: " + uhid));
 
         patientRepository.delete(patient);
     }

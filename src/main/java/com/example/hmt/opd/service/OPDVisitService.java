@@ -5,7 +5,9 @@ import com.example.hmt.doctor.Doctor;
 import com.example.hmt.doctor.DoctorRepository;
 import com.example.hmt.opd.dto.OPDVisitRequestDTO;
 import com.example.hmt.opd.dto.OPDVisitResponseDTO;
+import com.example.hmt.opd.dto.OPDVisitStatusUpdateDTO;
 import com.example.hmt.opd.model.OPDVisit;
+import com.example.hmt.opd.model.VisitStatus;
 import com.example.hmt.opd.repository.OPDVisitRepository;
 import com.example.hmt.patient.Patient;
 import com.example.hmt.patient.PatientRepository;
@@ -41,7 +43,7 @@ public class OPDVisitService {
         if (hospitalId == null)
             throw new IllegalArgumentException("Invalid hospital session");
 
-        Patient patient = patientRepository.findById(dto.getPatientId())
+        Patient patient = patientRepository.findPatientByUhid(dto.getPatientUHId())
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
         Doctor doctor = doctorRepository.findById(dto.getDoctorId())
@@ -70,8 +72,8 @@ public class OPDVisitService {
         return mapToDTO(visit);
     }
 
-    public Optional<OPDVisitResponseDTO> getVisitById(Long id, Long hospitalId) {
-        return visitRepository.findByIdAndHospitalId(id, hospitalId).map(this::mapToDTO);
+    public Optional<OPDVisitResponseDTO> getVisitOPDById(String OPDid, Long hospitalId) {
+        return visitRepository.findByOpdIdAndHospitalId(OPDid, hospitalId).map(this::mapToDTO);
     }
     public List<OPDVisitResponseDTO> getAllVisit(Long hospitalId) {
         List<OPDVisit> visits = visitRepository.findAllByHospitalId(hospitalId);
@@ -79,6 +81,29 @@ public class OPDVisitService {
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public OPDVisitResponseDTO updateStatus(String visitId, OPDVisitStatusUpdateDTO dto) {
+
+        Long hospitalId = TenantContext.getHospitalId();
+
+        OPDVisit visit = visitRepository.findByOpdIdAndHospitalId(visitId, hospitalId)
+                .orElseThrow(() -> new RuntimeException("OPD Visit not found"));
+
+        VisitStatus newStatus;
+        try {
+            newStatus = VisitStatus.valueOf(dto.getStatus().toUpperCase());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid status: " + dto.getStatus());
+        }
+
+        visit.setStatus(newStatus);
+
+        visitRepository.save(visit);
+
+        return mapToDTO(visit);
+    }
+
 
     private OPDVisitResponseDTO mapToDTO(OPDVisit visit) {
         OPDVisitResponseDTO dto = new OPDVisitResponseDTO();
@@ -91,6 +116,7 @@ public class OPDVisitService {
         dto.setVisitTime(visit.getVisitTime());
         dto.setConsultationFee(visit.getConsultationFee());
         dto.setPatientUhid(visit.getPatient().getUhid());
+        dto.setStatus(visit.getStatus().toString());
         return dto;
     }
 }

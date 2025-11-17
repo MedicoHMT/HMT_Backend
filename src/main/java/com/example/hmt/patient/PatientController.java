@@ -22,10 +22,10 @@ public class PatientController {
         return patientService.getAllPatients();
     }
 
-    // GET /api/v1/patients/1  (Get patient by ID)
-    @GetMapping("/{id}")
-    public ResponseEntity<PatientResponseDTO> getPatientById(@PathVariable Long id) {
-        return patientService.getPatientById(id)
+    // GET /api/v1/patients/1  (Get patient by UHID)
+    @GetMapping("/{uhid}")
+    public ResponseEntity<PatientResponseDTO> getPatientById(@PathVariable String uhid) {
+        return patientService.getPatientById(uhid)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -48,10 +48,10 @@ public class PatientController {
     }
 
     // DELETE /api/v1/patients/1  (Delete patient by ID)
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePatient(@PathVariable Long id) {
+    @DeleteMapping("/{uhid}")
+    public ResponseEntity<Void> deletePatient(@PathVariable String uhid) {
         try {
-            patientService.deletePatient(id);
+            patientService.deletePatient(uhid);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

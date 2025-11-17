@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class OPDVisitRequestDTO {
-    private Long patientId;
+    private String patientUHId;
     private Long doctorId;
     private Double consultationFee;
     private String opdType;

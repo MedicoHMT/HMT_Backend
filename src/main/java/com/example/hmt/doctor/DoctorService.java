@@ -31,6 +31,7 @@ public class DoctorService {
         doctor.setLastName(doctorDetails.getLastName());
         doctor.setSpecialization(doctorDetails.getSpecialization());
         doctor.setContactNumber(doctorDetails.getContactNumber());
+        doctor.setDepartment(doctorDetails.getDepartment());
 
         return doctorRepository.save(doctor);
     }

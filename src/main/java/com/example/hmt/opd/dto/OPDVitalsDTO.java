@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class OPDVitalsDTO {
-    private Long visitId;
+    private String opdid;
 
     private Integer pulse;
     private Integer spo2;
