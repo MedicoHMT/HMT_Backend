@@ -2,7 +2,6 @@ package com.example.hmt.opd.model;
 
 import com.example.hmt.doctor.Doctor;
 import com.example.hmt.patient.Patient;
-import com.example.hmt.core.enums.VisitStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -17,6 +16,7 @@ public class OPDVisit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "opd_id", unique = true)
     private String opdId;
     private String opdType;         // eg. "General", "Emergency", "Follow-up"
 

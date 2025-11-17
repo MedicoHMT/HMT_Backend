@@ -24,7 +24,7 @@ public class OPDAssessmentController {
     }
 
     @GetMapping("/{visitId}")
-    public ResponseEntity<OPDAssessment> get(@PathVariable Long visitId) {
+    public ResponseEntity<OPDAssessment> get(@PathVariable String visitId) {
         return service.getAssessment(visitId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

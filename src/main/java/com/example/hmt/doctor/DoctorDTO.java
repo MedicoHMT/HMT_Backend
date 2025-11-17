@@ -9,4 +9,6 @@ public class DoctorDTO {
     private String lastName;
     private String specialization;
     private String contactNumber;
+    private String department;
+
 }

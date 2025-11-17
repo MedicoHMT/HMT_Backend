@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class OPDAssessmentDTO {
 
-    private Long visitId;
+    private String opd_id;
 
     private String symptoms;
     private String generalExamination;

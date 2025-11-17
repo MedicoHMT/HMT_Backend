@@ -26,14 +26,14 @@ public class OPDAssessmentService {
 
         Long hospitalId = TenantContext.getHospitalId();
 
-        OPDVisit visit = visitRepo.findByIdAndHospitalId(dto.getVisitId(), hospitalId)
+        OPDVisit visit = visitRepo.findByOpdIdAndHospitalId(dto.getOpd_id(), hospitalId)
                 .orElseThrow(() -> new RuntimeException("OPD Visit not found"));
 
-        OPDAssessment assessment = repo.findByVisitIdAndHospitalId(dto.getVisitId(), hospitalId)
+        OPDAssessment assessment = repo.findByOpdVisitOpdIdAndHospitalId(dto.getOpd_id(), hospitalId)
                 .orElse(new OPDAssessment());
 
         assessment.setHospitalId(hospitalId);
-        assessment.setVisit(visit);
+        assessment.setOpdVisit(visit);
 
         assessment.setSymptoms(dto.getSymptoms());
         assessment.setGeneralExamination(dto.getGeneralExamination());
@@ -45,9 +45,9 @@ public class OPDAssessmentService {
         return repo.save(assessment);
     }
 
-    public Optional<OPDAssessment> getAssessment(Long visitId) {
+    public Optional<OPDAssessment> getAssessment(String opdId) {
         Long hospitalId = TenantContext.getHospitalId();
-        return repo.findByVisitIdAndHospitalId(visitId, hospitalId);
+        return repo.findByOpdVisitOpdIdAndHospitalId(opdId, hospitalId);
     }
 
 }

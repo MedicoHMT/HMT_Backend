@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface OPDVisitRepository extends JpaRepository<OPDVisit, Long> {
 
-    Optional<OPDVisit> findByIdAndHospitalId(Long id, Long hospitalId);
     List<OPDVisit> findAllByHospitalId(Long hospitalId);
+    Optional<OPDVisit>findByOpdIdAndHospitalId(String  opdId, Long hospitalId);
 }

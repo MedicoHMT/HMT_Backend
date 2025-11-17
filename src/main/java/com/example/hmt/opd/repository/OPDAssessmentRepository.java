@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface OPDAssessmentRepository extends JpaRepository<OPDAssessment, Long> {
 
-    Optional<OPDAssessment> findByVisitIdAndHospitalId(Long visitId, Long hospitalId);
+    Optional<OPDAssessment> findByOpdVisitOpdIdAndHospitalId(String opdId, Long hospitalId);
+
 }
