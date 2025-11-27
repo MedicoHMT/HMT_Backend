@@ -11,6 +11,7 @@ import com.example.hmt.opd.model.VisitStatus;
 import com.example.hmt.opd.repository.OPDVisitRepository;
 import com.example.hmt.patient.Patient;
 import com.example.hmt.patient.PatientRepository;
+import com.example.hmt.patient.dto.PatientResponseDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -117,6 +118,29 @@ public class OPDVisitService {
         dto.setConsultationFee(visit.getConsultationFee());
         dto.setPatientUhid(visit.getPatient().getUhid());
         dto.setStatus(visit.getStatus().toString());
+
+        // Map full patient details
+        Patient p = visit.getPatient();
+        PatientResponseDTO pdto = new PatientResponseDTO();
+        pdto.setUhid(p.getUhid());
+        pdto.setFirstName(p.getFirstName());
+        pdto.setLastName(p.getLastName());
+        pdto.setDateOfBirth(p.getDateOfBirth());
+        pdto.setGender(p.getGender());
+        pdto.setContactNumber(p.getContactNumber());
+        pdto.setAddress(p.getAddress());
+        dto.setPatient(pdto);
+
+        // Map full doctor details
+        Doctor d = visit.getDoctor();
+        com.example.hmt.doctor.DoctorDTO ddto = new com.example.hmt.doctor.DoctorDTO();
+        ddto.setFirstName(d.getFirstName());
+        ddto.setLastName(d.getLastName());
+        ddto.setSpecialization(d.getSpecialization());
+        ddto.setContactNumber(d.getContactNumber());
+        ddto.setDepartment(d.getDepartment());
+        dto.setDoctor(ddto);
+
         return dto;
     }
 }
