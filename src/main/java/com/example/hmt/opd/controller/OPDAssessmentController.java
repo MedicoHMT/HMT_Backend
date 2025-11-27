@@ -4,6 +4,7 @@ import com.example.hmt.opd.dto.OPDAssessmentDTO;
 import com.example.hmt.opd.model.OPDAssessment;
 import com.example.hmt.opd.service.OPDAssessmentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
