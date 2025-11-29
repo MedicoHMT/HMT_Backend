@@ -44,6 +44,7 @@ public class SecurityConfig {
                         ).permitAll()
                         // Public endpoints
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/auth/superadmin/**").permitAll()
 
 
                         // Role-based access
