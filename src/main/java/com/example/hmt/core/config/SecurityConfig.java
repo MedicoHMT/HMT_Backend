@@ -47,16 +47,10 @@ public class SecurityConfig {
                         .requestMatchers("/auth/superadmin/**").permitAll()
 
 
-                        // Role-based access
-
-                        .requestMatchers("/api/auth/register").hasAuthority("SUPER_ADMIN")
-                        .requestMatchers("/api/v1/admin/**").hasAnyAuthority("SUPER_ADMIN","ADMIN")
-                        .requestMatchers("/api/v1/doctor/**").hasAnyAuthority("SUPER_ADMIN","ADMIN","STAFF")
-                        .requestMatchers("/api/v1/patients/**").hasAnyAuthority("SUPER_ADMIN","STAFF","DOCTOR", "ADMIN")
-                        .requestMatchers("/api/v1/opd/**").hasAnyAuthority("SUPER_ADMIN","ADMIN","DOCTOR","STAFF")
-
                         // Everything else requires authentication
                         .anyRequest().authenticated())
+
+
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(entryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

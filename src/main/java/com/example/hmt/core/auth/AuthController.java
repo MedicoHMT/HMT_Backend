@@ -20,6 +20,7 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     @PostMapping("/api/auth/register")
     public ResponseEntity<String> register(@RequestBody RegisterUserDTO dto) {
         return ResponseEntity.ok(authService.register(dto));

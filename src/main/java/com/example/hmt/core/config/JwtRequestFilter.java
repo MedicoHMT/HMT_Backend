@@ -2,6 +2,7 @@ package com.example.hmt.core.config;
 
 import com.example.hmt.core.auth.model.User;
 import com.example.hmt.core.auth.repository.UserRepository;
+import com.example.hmt.core.auth.service.RefreshTokenService;
 import com.example.hmt.core.tenant.TenantContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,16 +24,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain chain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
-        String username = null;
         String jwt = null;
+        String username = null;
         Long hospitalId = null;
 
         if (header != null && header.startsWith("Bearer ")) {
@@ -48,27 +47,39 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             User user = userRepository.findByUsername(username).orElse(null);
             if (user != null && jwtService.isTokenValid(jwt, user)) {
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                user.getUsername(), null,
-                                List.of(new SimpleGrantedAuthority(user.getRole().name()))
-                        );
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            } else {
-                // User not found in DB or DB-based validation failed.
-                // Validate token signature/expiration and build auth from token claims.
-                if (jwt != null && jwtService.isTokenValid(jwt)) {
-                    String roleClaim = jwtService.extractRole(jwt);
-                    if (roleClaim != null) {
-                        UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(
-                                        username, null,
-                                        List.of(new SimpleGrantedAuthority(roleClaim))
-                                );
-                        SecurityContextHolder.getContext().setAuthentication(auth);
-                    }
+                // NEW: check access token revocation
+                String accessJti = jwtService.extractJti(jwt);
+                if (accessJti != null && refreshTokenService.isRevokedAccessJti(accessJti)) {
+                    // token has been revoked -> do NOT authenticate
+                    chain.doFilter(request, response);
+                    return;
                 }
+
+
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user.getUsername(), null, List.of(new SimpleGrantedAuthority(user.getRole().name())));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+
+
             }
+//
+//
+//            else {
+//                // User not found in DB or DB-based validation failed.
+//                // Validate token signature/expiration and build auth from token claims.
+//                if (jwt != null && jwtService.isTokenValid(jwt)) {
+//                    String roleClaim = jwtService.extractRole(jwt);
+//                    if (roleClaim != null) {
+//                        UsernamePasswordAuthenticationToken auth =
+//                                new UsernamePasswordAuthenticationToken(
+//                                        username, null,
+//                                        List.of(new SimpleGrantedAuthority(roleClaim))
+//                                );
+//                        SecurityContextHolder.getContext().setAuthentication(auth);
+//                    }
+//                }
+//            }
+
+
         }
 
         try {

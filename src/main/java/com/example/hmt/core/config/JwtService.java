@@ -1,6 +1,7 @@
 package com.example.hmt.core.config;
 
 import com.example.hmt.core.auth.model.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -10,8 +11,6 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class JwtService {
@@ -19,7 +18,7 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
+    @Value("${jwt.expiration.ms}")
     private long expirationMs;
 
     private SecretKey getSigningKey() {
@@ -27,20 +26,42 @@ public class JwtService {
     }
 
     public String generateTokenSuperAdmin(String email, String role) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role);
-
-        return Jwts.builder()
+        return Jwts
+                .builder()
                 .subject(email)
-                .setClaims(claims)
+                .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
+
+    public String extractJti(String token) {
+        return extractAllClaims(token).getId();
+    }
+
+    public String extractUsername(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
+    public Long extractHospitalId(String token) {
+        return extractAllClaims(token).get("hospitalId", Long.class);
+    }
+
+
+    private Claims extractAllClaims(String token) {
+        return Jwts
+                .parser()
+                .verifyWith(getSigningKey())
+                .build().parseSignedClaims(token)
+                .getBody();
+    }
+
+
     public String generateToken(User user) {
-        return Jwts.builder()
+        return Jwts
+                .builder()
                 .subject(user.getUsername())
                 .claim("role", user.getRole().name())
                 .claim("hospitalId", user.getHospitalId())
@@ -50,33 +71,6 @@ public class JwtService {
                 .compact();
     }
 
-    public Long extractHospitalId(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("hospitalId", Long.class);
-    }
-
-
-    public String extractRole(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("role", String.class);
-    }
-
-    public String extractUsername(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-    }
 
     public boolean isTokenValid(String token, User user) {
         final String username = extractUsername(token);
@@ -89,7 +83,8 @@ public class JwtService {
     }
 
     private boolean isTokenExpired(String token) {
-        Date expiration = Jwts.parser()
+        Date expiration = Jwts
+                .parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
