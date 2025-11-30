@@ -1,5 +1,6 @@
 package com.example.hmt.core.config;
 
+import com.example.hmt.core.auth.model.Role;
 import com.example.hmt.core.auth.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -25,7 +26,7 @@ public class JwtService {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateTokenSuperAdmin(String email, String role) {
+    public String generateTokenSuperAdmin(String email, Role role) {
         return Jwts
                 .builder()
                 .subject(email)
@@ -49,6 +50,9 @@ public class JwtService {
         return extractAllClaims(token).get("hospitalId", Long.class);
     }
 
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
 
     private Claims extractAllClaims(String token) {
         return Jwts
@@ -60,11 +64,14 @@ public class JwtService {
 
 
     public String generateToken(User user) {
+
+        Object hospitalId = (user.getHospital() != null) ? user.getHospital().getId() : null;
+
         return Jwts
                 .builder()
                 .subject(user.getUsername())
                 .claim("role", user.getRole().name())
-                .claim("hospitalId", user.getHospitalId())
+                .claim("hospitalId", hospitalId)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

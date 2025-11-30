@@ -1,8 +1,12 @@
 package com.example.hmt.core.auth.service;
 
+import com.example.hmt.core.auth.model.Role;
 import com.example.hmt.core.auth.model.SuperAdmin;
+import com.example.hmt.core.auth.model.User;
 import com.example.hmt.core.auth.repository.SuperAdminRepository;
+import com.example.hmt.core.auth.repository.UserRepository;
 import com.example.hmt.core.otp.OtpStore;
+import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +16,8 @@ import java.util.Optional;
 
 @Service
 public class OtpService {
-    private final SuperAdminRepository repo;
+    private final SuperAdminRepository superAdminRepository;
+    private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final java.security.SecureRandom rnd = new java.security.SecureRandom();
 
@@ -25,9 +30,10 @@ public class OtpService {
 
     private final OtpStore otpStore;
 
-    public OtpService(SuperAdminRepository repo, org.springframework.core.env.Environment env, OtpStore otpStoreOpt) {
-        this.repo = repo;
+    public OtpService(SuperAdminRepository superAdminRepository, UserRepository userRepository, org.springframework.core.env.Environment env, OtpStore otpStoreOpt) {
+        this.superAdminRepository = superAdminRepository;
         this.otpStore = otpStoreOpt;
+        this.userRepository = userRepository;
 
         this.OTP_TTL = Duration.ofSeconds(Integer.parseInt(env.getProperty("otp.ttl.seconds", "600")));
         this.OTP_DIGITS = Integer.parseInt(env.getProperty("otp.digits", "6"));
@@ -41,53 +47,111 @@ public class OtpService {
         return "GLOBAL:" + email;
     }
 
-    public void requestOtp(String email, String ip) {
-        email = email.trim().toLowerCase();
-        Optional<SuperAdmin> opt = repo.findByEmail(email);
-        if (opt.isEmpty()) {
+    public void requestOtp(String email, String ip, Role role, String username) {
+
+        String targetEmail = null;
+
+        // --- RESOLVE THE REAL EMAIL ---
+        if (role == Role.SUPER_ADMIN) {
+            if (email == null) return;
+            // Check SuperAdmin
+            Optional<SuperAdmin> opt = superAdminRepository.findByEmail(email.trim().toLowerCase());
+            if (opt.isPresent()) {
+                targetEmail = opt.get().getEmail();
+            }
+        } else {
+            // Check User
+            Optional<User> userOpt = Optional.empty();
+
+            if (username != null && !username.trim().isEmpty()) {
+                userOpt = userRepository.findByUsername(username.trim().toLowerCase());
+            } else if (email != null && !email.trim().isEmpty()) {
+                userOpt = userRepository.findByEmail(email.trim().toLowerCase());
+            }
+
+            if (userOpt.isPresent()) {
+                targetEmail = userOpt.get().getEmail();
+            }
+        }
+
+        // If user not found, we silently return
+        if (targetEmail == null) {
             return;
         }
-        String key = makeKeyForEmail(email);
 
-        if (otpStore.isLocked(key)) return;
+        // --- RATE LIMITING & OTP GENERATION ---
+        String key = makeKeyForEmail(targetEmail);
 
-        // increment per-email requests (ttl 1 hour)
+        // Check if account is locked
+        if (otpStore.isLocked(key)) {
+            throw new IllegalStateException("account_locked");
+        }
+
+        // Rate Limit: Per User (Email)
         long reqs = otpStore.incrRequestCount(key, 3600);
         if (reqs > REQUEST_LIMIT_PER_HOUR) {
             otpStore.setLock(key, (int) LOCK_DURATION.getSeconds());
-            return;
+            throw new IllegalStateException("Too many requests. Account locked for 15 minutes.");
         }
 
-        // per-IP limit (optional)
-        String ipKey = makeKeyForEmail(email) + ":IP:" + ip;
+        // Rate Limit: Per IP Address
+        String ipKey = "IP:" + ip;
         long ipReqs = otpStore.incrIpCount(ipKey, 3600);
-        if (ipReqs > 100) { // very permissive; tune as needed
-            return;
+        if (ipReqs > 100) {
+            return; // Silently ignore spam from this IP
         }
 
-        // generate OTP and store hashed OTP in redis
+        // Generate & Store
         String otp = generateNumericOtp(OTP_DIGITS);
         String hash = encoder.encode(otp);
+
         otpStore.storeOtpHash(key, hash, (int) OTP_TTL.getSeconds());
 
-        // DEV: print OTP. Replace with SES/Twilio sending.
-        System.out.println("DEV OTP red for " + email + ": " + otp);
+        // Send Email
+        System.out.println("DEV: OTP for " + targetEmail + " is: " + otp);
     }
 
-    public String verifyOtpAndReturnEmail(String email, String otp) {
-        email = email.trim().toLowerCase();
-        Optional<SuperAdmin> opt = repo.findByEmail(email);
-        if (opt.isEmpty()) throw new IllegalArgumentException("invalid");
-        SuperAdmin admin = opt.get();
 
-        String key = makeKeyForEmail(email);
+    @Transactional
+    public Object verifyOtpAndReturnEmail(String email, String otp, Role role, String username) {
+
+        String targetEmail = null;
+        User userEntity = null;
+        SuperAdmin adminEntity = null;
+
+        // ---  RESOLVE USER ---
+        if (role == Role.SUPER_ADMIN) {
+            if (email == null) throw new IllegalArgumentException("invalid");
+
+            // Find SuperAdmin
+            adminEntity = superAdminRepository.findByEmail(email.trim().toLowerCase())
+                    .orElseThrow(() -> new IllegalArgumentException("invalid"));
+
+            targetEmail = adminEntity.getEmail();
+        } else {
+            // Find  User
+            Optional<User> opt = Optional.empty();
+
+            if (email != null && !email.trim().isEmpty()) {
+                opt = userRepository.findByEmail(email.trim().toLowerCase());
+            } else if (username != null && !username.trim().isEmpty()) {
+                opt = userRepository.findByUsername(username.trim().toLowerCase());
+            }
+
+            userEntity = opt.orElseThrow(() -> new IllegalArgumentException("invalid"));
+            targetEmail = userEntity.getEmail();
+        }
+
+        // --- VERIFY OTP ---
+        String key = makeKeyForEmail(targetEmail);
+
         if (otpStore.isLocked(key)) throw new IllegalStateException("account_locked");
 
         String hash = otpStore.getOtpHash(key);
         if (hash == null) throw new IllegalStateException("otp_expired");
 
-        boolean ok = encoder.matches(otp, hash);
-        if (!ok) {
+        if (!encoder.matches(otp, hash)) {
+            // Handle Failure
             long attempts = otpStore.incrAttempts("attempts:" + key, (int) OTP_TTL.getSeconds());
             if (attempts >= MAX_ATTEMPTS) {
                 otpStore.setLock(key, (int) LOCK_DURATION.getSeconds());
@@ -97,13 +161,18 @@ public class OtpService {
             throw new IllegalArgumentException("invalid");
         }
 
-        // success
+        // --- SUCCESS ---
         otpStore.deleteOtp(key);
-        // update last_login in DB
-        admin.setLastLogin(Instant.now());
-        repo.save(admin);
-        return email;
 
+        if (role == Role.SUPER_ADMIN) {
+            adminEntity.setLastLogin(Instant.now());
+            superAdminRepository.save(adminEntity);
+            return targetEmail;
+        } else {
+            userEntity.setLastLogin(Instant.now());
+            userRepository.save(userEntity);
+            return userEntity;
+        }
     }
 
     private String generateNumericOtp(int digits) {

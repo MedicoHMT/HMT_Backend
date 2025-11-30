@@ -1,5 +1,6 @@
 package com.example.hmt.core.auth.controller;
 
+import com.example.hmt.core.auth.model.Role;
 import com.example.hmt.core.auth.service.OtpService;
 import com.example.hmt.core.auth.service.RefreshTokenService;
 import com.example.hmt.core.config.JwtService;
@@ -40,7 +41,7 @@ public class SuperAdminAuthController {
     public ResponseEntity<?> requestOtp(@RequestBody Req req, HttpServletRequest httpReq) {
         // Always respond 200 to avoid enumeration
         try {
-            otpService.requestOtp(req.email.trim().toLowerCase(), httpReq.getRemoteAddr());
+            otpService.requestOtp(req.email.trim().toLowerCase(), httpReq.getRemoteAddr(), Role.SUPER_ADMIN, null);
         } catch (Exception e) {
             // log but do not leak to client
             System.out.println("OTP request issue: " + e.getMessage());
@@ -51,10 +52,9 @@ public class SuperAdminAuthController {
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody VerifyReq req, HttpServletResponse httpRes) {
         try {
-            // otpService now returns user's email on success and JwtService used here to generate access token
-            String email = otpService.verifyOtpAndReturnEmail(req.email.trim().toLowerCase(), req.otp);
+            String email = (String) otpService.verifyOtpAndReturnEmail(req.email.trim().toLowerCase(), req.otp, Role.SUPER_ADMIN, null);
             // generate access token
-            String access = jwtService.generateTokenSuperAdmin(email, "SUPER_ADMIN");
+            String access = jwtService.generateTokenSuperAdmin(email, Role.SUPER_ADMIN);
             // create refresh jti and store in redis
             String jti = refreshTokenService.createRefreshForUser(email);
 
@@ -92,27 +92,21 @@ public class SuperAdminAuthController {
         String userEmail = optUser.get();
         String newJti = newJtiOpt.get();
         // issue new access token
-        String newAccess = jwtService.generateTokenSuperAdmin(userEmail, "SUPER_ADMIN");
+        String newAccess = jwtService.generateTokenSuperAdmin(userEmail, Role.SUPER_ADMIN);
 
         // set new cookie
-        ResponseCookie cookieNew = ResponseCookie.from(cookieName, newJti).httpOnly(true).secure(secureFlag).path(cookiePath).sameSite(sameSite).maxAge(Long.parseLong(System.getProperty("jwt.refresh.expiration.seconds", "604800"))) // fallback
+        ResponseCookie cookieNew = ResponseCookie
+                .from(cookieName, newJti)
+                .httpOnly(true)
+                .secure(secureFlag)
+                .path(cookiePath)
+                .sameSite(sameSite)
+                .maxAge(Long.parseLong(System.getProperty("jwt.refresh.expiration.seconds", "604800"))) // fallback
                 .build();
+
         response.addHeader(HttpHeaders.SET_COOKIE, cookieNew.toString());
 
         return ResponseEntity.ok(Map.of("accessToken", newAccess));
-    }
-
-
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
-        jakarta.servlet.http.Cookie cookie = org.springframework.web.util.WebUtils.getCookie(request, cookieName);
-        if (cookie != null) {
-            refreshTokenService.revoke(cookie.getValue());
-        }
-        // clear cookie
-        ResponseCookie expired = ResponseCookie.from(cookieName, "").httpOnly(true).secure(secureFlag).path(cookiePath).maxAge(0).sameSite(sameSite).build();
-        response.addHeader(HttpHeaders.SET_COOKIE, expired.toString());
-        return ResponseEntity.ok().build();
     }
 
 
