@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: hmt_postgres
+    environment:
+      POSTGRES_DB: hmt
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - hmt_network
+
+  redis:
+    image: redis:7
+    container_name: hmt_redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks:
+      - hmt_network
+
+networks:
+  hmt_network:
+
+volumes:
+  pgdata:
