@@ -49,6 +49,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 User user = userRepository.findByUsername(username).orElse(null);
+
+
                 if (user != null && jwtService.isTokenValid(jwt, user)) {
                     // NEW: check access token revocation
                     String accessJti = jwtService.extractJti(jwt);
@@ -59,27 +61,30 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     }
 
 
-                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user.getUsername(), null, List.of(new SimpleGrantedAuthority(user.getRole().name())));
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                            user.getUsername(),
+                            null,
+                            user.getAuthorities()
+                    );
                     SecurityContextHolder.getContext().setAuthentication(auth);
-
-
                 } else {
+
                     // User not found in DB or DB-based validation failed.
                     // Validate token signature/expiration and build auth from token claims.
                     if (jwtService.isTokenValid(jwt)) {
                         String roleClaim = jwtService.extractRole(jwt);
                         if (roleClaim != null) {
-                            UsernamePasswordAuthenticationToken auth =
-                                    new UsernamePasswordAuthenticationToken(
-                                            username, null,
-                                            List.of(new SimpleGrantedAuthority(roleClaim))
-                                    );
+                            // Add "ROLE_" prefix to maintain consistency with hasRole()
+                            String authority = roleClaim.startsWith("ROLE_") ? roleClaim : "ROLE_" + roleClaim;
+                            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                                    username,
+                                    null,
+                                    List.of(new SimpleGrantedAuthority(authority))
+                            );
                             SecurityContextHolder.getContext().setAuthentication(auth);
                         }
                     }
                 }
-
-
             }
 
         } catch (io.jsonwebtoken.ExpiredJwtException e) {

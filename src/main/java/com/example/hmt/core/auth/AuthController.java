@@ -1,6 +1,7 @@
 package com.example.hmt.core.auth;
 
 import com.example.hmt.core.auth.dto.RegisterUserDTO;
+import com.example.hmt.core.auth.dto.RegisterUserPerHospitalDTO;
 import com.example.hmt.core.auth.model.User;
 import com.example.hmt.core.auth.repository.UserRepository;
 import com.example.hmt.core.auth.service.OtpService;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,7 +54,7 @@ public class AuthController {
     private long refreshDurationSeconds;
 
 
-    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping("/api/auth/registerAdminHospital")
     public ResponseEntity<String> register(@RequestBody RegisterUserDTO dto) {
         authService.registerUserAdminAndHospital(dto);
@@ -204,13 +206,12 @@ public class AuthController {
     }
 
 
-//
-//    // ADMINs can register users for their own hospital
-//    @PreAuthorize("hasAuthority('ADMIN')")
-//    @PostMapping("/api/v1/admin/register")
-//    public ResponseEntity<String> registerForAdminHospital(@RequestBody RegisterUserPerHospitalDTO dto) {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String adminUsername = authentication.getName();
-//        return ResponseEntity.ok(authService.registerForAdminHospital(adminUsername, dto));
-//    }
+    // ADMINs can register users for their own hospital
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/api/v1/admin/register")
+    public ResponseEntity<String> registerForAdminHospital(@RequestBody RegisterUserPerHospitalDTO dto) {
+        String adminUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        String message = authService.registerForUserInHospital(adminUsername, dto);
+        return ResponseEntity.ok(message);
+    }
 }

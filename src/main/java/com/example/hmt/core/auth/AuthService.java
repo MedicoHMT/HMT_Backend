@@ -1,17 +1,25 @@
 package com.example.hmt.core.auth;
 
 import com.example.hmt.core.auth.dto.RegisterUserDTO;
+import com.example.hmt.core.auth.dto.RegisterUserPerHospitalDTO;
 import com.example.hmt.core.auth.model.Role;
 import com.example.hmt.core.auth.model.User;
+import com.example.hmt.core.auth.model.UserPermission;
 import com.example.hmt.core.auth.repository.UserRepository;
+import com.example.hmt.core.config.RolePermissionConfig;
 import com.example.hmt.core.tenant.Hospital;
 import com.example.hmt.core.tenant.HospitalRepository;
+import com.example.hmt.core.tenant.TenantContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -62,45 +70,52 @@ public class AuthService {
                 .phoneNumber(dto.getPhoneNumber())
                 .role(Role.ADMIN)
                 .hospital(hospital)
+                // grant all permissions to ADMIN
+                .permissions(EnumSet.allOf(UserPermission.class))
                 .build();
 
         userRepository.save(user);
     }
 
 
-//    // Register a user into the authenticated ADMIN's hospital
-//    public String registerForAdminHospital(String adminUsername, RegisterUserPerHospitalDTO dto) {
-//        // Resolve admin by username+current tenant hospitalId to avoid duplicate usernames across hospitals
-//        Long currentHospitalId = TenantContext.getHospitalId();
-//        if (currentHospitalId == null) {
-//            throw new BadCredentialsException("No hospital context available");
-//        }
-//
-//        User admin = userRepository.findByUsernameAndHospitalId(adminUsername, currentHospitalId).orElseThrow(() -> new BadCredentialsException("Admin user not found in current hospital"));
-//        if (admin.getRole() != Role.ADMIN) {
-//            throw new BadCredentialsException("Only ADMIN can register users for their hospital");
-//        }
-//
-//        Long hospitalId = admin.getHospitalId();
-//        if (hospitalId == null) {
-//            throw new BadCredentialsException("Admin has no hospital assigned");
-//        }
-//
-//        // verify hospital exists
-//        if (hospitalRepository.findById(hospitalId).isEmpty()) {
-//            throw new BadCredentialsException("Hospital not found");
-//        }
-//
-//        // Prevent duplicate usernames within the same hospital
-//        if (userRepository.findByUsernameAndHospitalId(dto.getUsername(), hospitalId).isPresent()) {
-//            throw new BadCredentialsException("Username already exists in this hospital");
-//        }
-//
-//        User user = User.builder().username(dto.getUsername()).password(passwordEncoder.encode(dto.getPassword())).role(dto.getRole()).hospitalId(hospitalId).build();
-//
-//        userRepository.save(user);
-//        return "User Registered Successfully!";
-//    }
-//
+    // Register a user into the authenticated ADMIN's hospital
+    @Transactional
+    public String registerForUserInHospital(String adminUsername, RegisterUserPerHospitalDTO dto) {
+
+        // Validate Context
+        Long currentHospitalId = TenantContext.getHospitalId();
+        if (currentHospitalId == null) {
+            throw new IllegalStateException("System Error: No hospital context found.");
+        }
+
+        // Fetch Admin
+        User admin = userRepository.findByUsernameAndHospitalId(adminUsername, currentHospitalId)
+                .orElseThrow(() -> new IllegalArgumentException("Admin permission denied for this hospital"));
+
+
+        // Validate Duplicate User
+        if (userRepository.existsByUsernameAndHospitalId(dto.getUsername(), currentHospitalId)) {
+            throw new IllegalArgumentException("Username '" + dto.getUsername() + "' already exists in this hospital.");
+        }
+
+
+        Set<UserPermission> initialPermissions = RolePermissionConfig.getDefaultsFor(dto.getRole());
+
+        User user = User.builder()
+                .username(dto.getUsername())
+                .email(dto.getEmail())
+                .firstName(dto.getFirstName())
+                .lastName(dto.getLastName())
+                .phoneNumber(dto.getPhoneNumber())
+                .hospital(admin.getHospital())
+                .role(dto.getRole())
+                .permissions(new HashSet<>(initialPermissions))
+                .build();
+
+        userRepository.save(user);
+
+        return "User Registered Successfully!";
+    }
+
 
 }

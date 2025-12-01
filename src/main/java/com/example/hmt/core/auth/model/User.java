@@ -11,9 +11,11 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.time.Instant;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -56,6 +58,15 @@ public class User {
     private Role role;
 
 
+    @ElementCollection(targetClass = UserPermission.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "permission")
+    @Builder.Default
+    /// Prevents Builder from overwriting initialization with null
+    private Set<UserPermission> permissions = new HashSet<>();
+
+
     // ---------- Timestamps ----------
     @CreationTimestamp
     @Column(updatable = false)
@@ -67,4 +78,27 @@ public class User {
     @Column(name = "last_login")
     private Instant lastLogin;
 
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+        //  Add the base Role (e.g., ROLE_ADMIN)
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
+
+        // Add the dynamic Permissions (e.g., PATIENT_READ)
+        // If user is ADMIN, you might grant ALL permissions automatically here
+
+        if (this.role == Role.ADMIN) {
+            // grant everything
+            for (UserPermission p : UserPermission.values()) {
+                authorities.add(new SimpleGrantedAuthority(p.name()));
+            }
+        } else {
+            for (UserPermission p : permissions) {
+                authorities.add(new SimpleGrantedAuthority(p.name()));
+            }
+        }
+
+        return authorities;
+    }
 }
