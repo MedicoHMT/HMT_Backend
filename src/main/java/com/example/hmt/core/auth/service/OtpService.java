@@ -27,11 +27,14 @@ public class OtpService {
     private final Duration LOCK_DURATION;
     private final int REQUEST_LIMIT_PER_HOUR;
 
+    private final EmailService emailService;
+
 
     private final OtpStore otpStore;
 
-    public OtpService(SuperAdminRepository superAdminRepository, UserRepository userRepository, org.springframework.core.env.Environment env, OtpStore otpStoreOpt) {
+    public OtpService(SuperAdminRepository superAdminRepository, UserRepository userRepository, org.springframework.core.env.Environment env, EmailService emailService, OtpStore otpStoreOpt) {
         this.superAdminRepository = superAdminRepository;
+        this.emailService = emailService;
         this.otpStore = otpStoreOpt;
         this.userRepository = userRepository;
 
@@ -76,7 +79,7 @@ public class OtpService {
 
         // If user not found, we silently return
         if (targetEmail == null) {
-            return;
+            throw new IllegalStateException("User not found");
         }
 
         // --- RATE LIMITING & OTP GENERATION ---
@@ -107,7 +110,7 @@ public class OtpService {
 
         otpStore.storeOtpHash(key, hash, (int) OTP_TTL.getSeconds());
 
-        // Send Email
+        emailService.sendOtpEmail(email, otp);
         System.out.println("DEV: OTP for " + targetEmail + " is: " + otp);
     }
 

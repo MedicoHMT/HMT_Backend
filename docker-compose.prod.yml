@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: hmt_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: hmt
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - hmt_network
+
+  redis:
+    image: redis:7
+    container_name: hmt_redis
+    restart: always
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks:
+      - hmt_network
+
+  app:
+    build: .
+    # or if you prefer to use a prebuilt image:
+    # image: your_ecr_or_local_repo/hmt-app:latest
+    container_name: hmt_app
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/hmt
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      OTP_REDIS_URI: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "127.0.0.1:8080:8080"  # bind to localhost, front with nginx later
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - hmt_network
+
+volumes:
+  pgdata:
+
+networks:
+  hmt_network:
