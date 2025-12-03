@@ -2,6 +2,7 @@ package com.example.hmt.core.config;
 
 import com.example.hmt.core.auth.model.Role;
 import com.example.hmt.core.auth.model.User;
+import com.example.hmt.core.tenant.Hospital;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -65,13 +66,19 @@ public class JwtService {
 
     public String generateToken(User user) {
 
-        Object hospitalId = (user.getHospital() != null) ? user.getHospital().getId() : null;
+
+        Hospital hospital = user.getHospital();
+
+        Long hospitalId = (hospital != null) ? hospital.getId() : null;
+        String hospitalName = (hospital != null) ? hospital.getName() : null;
 
         return Jwts
                 .builder()
                 .subject(user.getUsername())
                 .claim("role", user.getRole().name())
                 .claim("hospitalId", hospitalId)
+                .claim("hospitalName", hospitalName)
+                .claim("permissions", user.getPermissions())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
