@@ -112,7 +112,7 @@ public class OPDVisitService {
         dto.setOpdId(visit.getOpdId());
         dto.setOpdType(visit.getOpdType());
         dto.setPatientId(visit.getPatient().getId());
-        dto.setDoctorId(visit.getDoctor().getId());
+//        dto.setDoctorId(visit.getDoctor().getId());
         dto.setVisitDate(visit.getVisitDate());
         dto.setVisitTime(visit.getVisitTime());
         dto.setConsultationFee(visit.getConsultationFee());
@@ -132,14 +132,14 @@ public class OPDVisitService {
         dto.setPatient(pdto);
 
         // Map full doctor details
-        Doctor d = visit.getDoctor();
-        com.example.hmt.doctor.DoctorDTO ddto = new com.example.hmt.doctor.DoctorDTO();
-        ddto.setFirstName(d.getFirstName());
-        ddto.setLastName(d.getLastName());
-        ddto.setSpecialization(d.getSpecialization());
-        ddto.setContactNumber(d.getContactNumber());
-        ddto.setDepartment(d.getDepartment());
-        dto.setDoctor(ddto);
+//        Doctor d = visit.getDoctor();
+//        com.example.hmt.doctor.DoctorDTO ddto = new com.example.hmt.doctor.DoctorDTO();
+//        ddto.setFirstName(d.getFirstName());
+//        ddto.setLastName(d.getLastName());
+//        ddto.setSpecialization(d.getSpecialization());
+//        ddto.setContactNumber(d.getContactNumber());
+//        ddto.setDepartment(d.getDepartment());
+//        dto.setDoctor(ddto);
 
         return dto;
     }
