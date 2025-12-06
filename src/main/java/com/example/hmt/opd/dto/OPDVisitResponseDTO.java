@@ -1,7 +1,6 @@
 package com.example.hmt.opd.dto;
 
 import com.example.hmt.patient.dto.PatientResponseDTO;
-import com.example.hmt.doctor.DoctorDTO;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -28,5 +27,5 @@ public class OPDVisitResponseDTO {
     private PatientResponseDTO patient;
 
     // New: full doctor details
-    private DoctorDTO doctor;
+//    private DoctorDTO doctor;
 }

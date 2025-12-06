@@ -1,5 +1,6 @@
 package com.example.hmt.core.auth;
 
+import com.example.hmt.core.auth.dto.RegisterDoctorPerHospitalDTO;
 import com.example.hmt.core.auth.dto.RegisterUserDTO;
 import com.example.hmt.core.auth.dto.RegisterUserPerHospitalDTO;
 import com.example.hmt.core.auth.model.User;
@@ -212,6 +213,14 @@ public class AuthController {
     public ResponseEntity<String> registerForAdminHospital(@RequestBody RegisterUserPerHospitalDTO dto) {
         String adminUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         String message = authService.registerForUserInHospital(adminUsername, dto);
+        return ResponseEntity.ok(message);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/api/v1/admin/registerDoctor")
+    public ResponseEntity<String> registerForDoctorHospital(@RequestBody RegisterDoctorPerHospitalDTO dto) {
+        String adminUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        String message = authService.registerForDoctorHospital(adminUsername, dto);
         return ResponseEntity.ok(message);
     }
 }

@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: hmt
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -24,20 +24,28 @@ services:
 
   app:
     build: .
-    # or if you prefer to use a prebuilt image:
-    # image: your_ecr_or_local_repo/hmt-app:latest
     container_name: hmt_app
     restart: always
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/hmt
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      OTP_REDIS_URI: redis://redis:6379
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD:  ${SPRING_DATASOURCE_PASSWORD}
+      OTP_REDIS_URI: ${OTP_REDIS_URI}
       JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      JWT_REFRESH_EXPIRATION_SECONDS: ${JWT_REFRESH_EXPIRATION_SECONDS}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_STARTTLS}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: ${SPRING_MAIL_STARTTLS}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL}
       SERVER_PORT: 8080
       SPRING_PROFILES_ACTIVE: prod
     ports:
-      - "127.0.0.1:8080:8080"  # bind to localhost, front with nginx later
+      - "8080:8080"
     depends_on:
       - postgres
       - redis
