@@ -1,31 +1,30 @@
 package com.example.hmt.opd.dto;
 
+import com.example.hmt.department.dto.DepartmentResponseDTO;
+import com.example.hmt.doctor.DoctorResponseDTO;
+import com.example.hmt.opd.model.VisitStatus;
 import com.example.hmt.patient.dto.PatientResponseDTO;
+import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.Instant;
 
 
 @Data
+@Builder
 public class OPDVisitResponseDTO {
     private String opdId;
     private String opdType;
 
-    // keep legacy patientId for compatibility but prefer full patient object
-    private Long patientId;
-    private Long doctorId;
+    private Long tokenNumber;
+    private String reason;
+    private String triageLevel;
 
-    private LocalDate visitDate;
-    private LocalTime visitTime;
-    private Double consultationFee;
-    private String status;
+    private Instant visitDate;
+    private int consultationFee;
+    private VisitStatus status;
 
-    private String patientUhid;
-
-    // New: full patient details
     private PatientResponseDTO patient;
-
-    // New: full doctor details
-//    private DoctorDTO doctor;
+    private DoctorResponseDTO doctor;
+    private DepartmentResponseDTO department;
 }

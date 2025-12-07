@@ -25,10 +25,10 @@ public class OPDVitalsService {
 
         Long hospitalId = TenantContext.getHospitalId();
 
-        OPDVisit visit = visitRepo.findByOpdIdAndHospitalId(dto.getOpdid(), hospitalId)
+        OPDVisit visit = visitRepo.findByOpdVisitIdAndHospital_Id(dto.getOpdid(), hospitalId)
                 .orElseThrow(() -> new RuntimeException("OPD Visit not found"));
 
-        OPDVitals vitals = vitalsRepo.findByOpdVisitOpdIdAndHospitalId(dto.getOpdid(), hospitalId)
+        OPDVitals vitals = vitalsRepo.findByOpdVisitOpdVisitIdAndHospitalId(dto.getOpdid(), hospitalId)
                 .orElse(new OPDVitals());
 
         vitals.setHospitalId(hospitalId);
@@ -47,7 +47,7 @@ public class OPDVitalsService {
 
     public Optional<OPDVitals> getVitals(String visitId) {
         Long hospitalId = TenantContext.getHospitalId();
-        return vitalsRepo.findByOpdVisitOpdIdAndHospitalId(visitId, hospitalId);
+        return vitalsRepo.findByOpdVisitOpdVisitIdAndHospitalId(visitId, hospitalId);
     }
 
 }

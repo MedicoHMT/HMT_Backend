@@ -13,7 +13,7 @@ public class OPDAssessment {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "opd_id", referencedColumnName = "opd_id", nullable = false, unique = true)
+    @JoinColumn(name = "opd_id", referencedColumnName = "id", nullable = false, unique = true)
     private OPDVisit opdVisit;
 
     private String symptoms;
