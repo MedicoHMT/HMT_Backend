@@ -1,22 +1,29 @@
 package com.example.hmt.opd.service;
 
+import com.example.hmt.core.auth.model.User;
+import com.example.hmt.core.auth.repository.UserRepository;
+import com.example.hmt.core.handler.exception.ResourceNotFoundException;
+import com.example.hmt.core.tenant.Hospital;
+import com.example.hmt.core.tenant.HospitalRepository;
 import com.example.hmt.core.tenant.TenantContext;
+import com.example.hmt.department.model.Department;
+import com.example.hmt.department.repository.DepartmentRepository;
 import com.example.hmt.doctor.Doctor;
 import com.example.hmt.doctor.DoctorRepository;
 import com.example.hmt.opd.dto.OPDVisitRequestDTO;
 import com.example.hmt.opd.dto.OPDVisitResponseDTO;
 import com.example.hmt.opd.dto.OPDVisitStatusUpdateDTO;
+import com.example.hmt.opd.mapper.OPDVisitMapper;
 import com.example.hmt.opd.model.OPDVisit;
 import com.example.hmt.opd.model.VisitStatus;
 import com.example.hmt.opd.repository.OPDVisitRepository;
 import com.example.hmt.patient.Patient;
 import com.example.hmt.patient.PatientRepository;
-import com.example.hmt.patient.dto.PatientResponseDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,13 +34,23 @@ public class OPDVisitService {
     private final OPDVisitRepository visitRepository;
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
+    private final HospitalRepository hospitalRepository;
+    private final DepartmentRepository departmentRepository;
+    private final UserRepository userRepository;
 
     public OPDVisitService(OPDVisitRepository visitRepository,
                            PatientRepository patientRepository,
-                           DoctorRepository doctorRepository) {
+                           DoctorRepository doctorRepository,
+                           HospitalRepository hospitalRepository,
+                           DepartmentRepository departmentRepository,
+                           UserRepository userRepository
+    ) {
         this.visitRepository = visitRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
+        this.hospitalRepository = hospitalRepository;
+        this.departmentRepository = departmentRepository;
+        this.userRepository = userRepository;
     }
 
 
@@ -43,53 +60,80 @@ public class OPDVisitService {
         Long hospitalId = TenantContext.getHospitalId();
         if (hospitalId == null)
             throw new IllegalArgumentException("Invalid hospital session");
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hospital not found"));
 
         Patient patient = patientRepository.findByUhid(dto.getPatientUHId())
-                .orElseThrow(() -> new RuntimeException("Patient not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
 
         Doctor doctor = doctorRepository.findById(dto.getDoctorId())
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
 
-        OPDVisit visit = new OPDVisit();
-        visit.setHospitalId(hospitalId);
-        visit.setPatient(patient);
-        visit.setDoctor(doctor);
+        Department department = departmentRepository.findById(dto.getDepartmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Department no found"));
 
-        visit.setOpdType(dto.getOpdType());
-        visit.setConsultationFee(dto.getConsultationFee());
-        visit.setVisitDate(LocalDate.now());
-        visit.setVisitTime(LocalTime.now());
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // Save once to get ID
+        OPDVisit visit = OPDVisit.builder()
+                .opdVisitType(dto.getOpdType())
+                .reason(dto.getReason())
+                .triageLevel(dto.getTriageLevel())
+                .opdVisitDate(Instant.now())
+                .consultationFee(dto.getConsultationFee())
+                .hospital(hospital)
+                .patient(patient)
+                .doctor(doctor)
+                .department(department)
+                .createdBy(user)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .isDeleted(false)
+                .build();
+
         visit = visitRepository.save(visit);
 
         // Generate OPD ID (formatted)
-        String opdId = "OPD-" + visit.getVisitDate().getYear() + "-" + String.format("%06d", visit.getId());
-        visit.setOpdId(opdId);
+        String opdId = "OPD-" + visit.getOpdVisitDate().atZone(ZoneId.systemDefault()).getYear() + "-" + String.format("%06d", visit.getId());
+        visit.setOpdVisitId(opdId);
 
         // Update record with OPD ID
         visit = visitRepository.save(visit);
 
-        return mapToDTO(visit);
+        return OPDVisitMapper.mapToOPDVisitResponseDTO(visit, true);
     }
 
-    public Optional<OPDVisitResponseDTO> getVisitOPDById(String OPDid, Long hospitalId) {
-        return visitRepository.findByOpdIdAndHospitalId(OPDid, hospitalId).map(this::mapToDTO);
+    public Optional<OPDVisitResponseDTO> getOPDVisitByOPDVisitId(String opdVisitId, Long hospitalId) {
+        return visitRepository.findByOpdVisitIdAndHospital_Id(opdVisitId, hospitalId)
+                .map(visit -> OPDVisitMapper.mapToOPDVisitResponseDTO(visit, true));
     }
+
     public List<OPDVisitResponseDTO> getAllVisit(Long hospitalId) {
-        List<OPDVisit> visits = visitRepository.findAllByHospitalId(hospitalId);
+        List<OPDVisit> visits = visitRepository.findAllByHospital_Id(hospitalId);
         return visits.stream()
-                .map(this::mapToDTO)
+                .map(visit -> OPDVisitMapper.mapToOPDVisitResponseDTO(visit, true))
+                .collect(Collectors.toList());
+    }
+
+    public List<OPDVisitResponseDTO> getAllVisitByUhidAndHospitalId(String uhid, Long hospitalId) {
+        Optional<Patient> patient = patientRepository.findByUhid(uhid);
+        if (!patient.isPresent()) {
+            throw new ResourceNotFoundException("Patient not found");
+        }
+        Long patientId = patient.get().getId();
+        List<OPDVisit> visits = visitRepository.findAllByPatient_IdAndHospital_Id(patientId, hospitalId);
+        return visits.stream()
+                .map(visit -> OPDVisitMapper.mapToOPDVisitResponseDTO(visit, true))
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public OPDVisitResponseDTO updateStatus(String visitId, OPDVisitStatusUpdateDTO dto) {
+    public OPDVisitResponseDTO updateStatus(String opdVisitId, OPDVisitStatusUpdateDTO dto) {
 
         Long hospitalId = TenantContext.getHospitalId();
 
-        OPDVisit visit = visitRepository.findByOpdIdAndHospitalId(visitId, hospitalId)
-                .orElseThrow(() -> new RuntimeException("OPD Visit not found"));
+        OPDVisit visit = visitRepository.findByOpdVisitIdAndHospital_Id(opdVisitId, hospitalId)
+                .orElseThrow(() -> new ResourceNotFoundException("OPD Visit not found"));
 
         VisitStatus newStatus;
         try {
@@ -102,45 +146,6 @@ public class OPDVisitService {
 
         visitRepository.save(visit);
 
-        return mapToDTO(visit);
-    }
-
-
-    private OPDVisitResponseDTO mapToDTO(OPDVisit visit) {
-        OPDVisitResponseDTO dto = new OPDVisitResponseDTO();
-
-        dto.setOpdId(visit.getOpdId());
-        dto.setOpdType(visit.getOpdType());
-        dto.setPatientId(visit.getPatient().getId());
-//        dto.setDoctorId(visit.getDoctor().getId());
-        dto.setVisitDate(visit.getVisitDate());
-        dto.setVisitTime(visit.getVisitTime());
-        dto.setConsultationFee(visit.getConsultationFee());
-        dto.setPatientUhid(visit.getPatient().getUhid());
-        dto.setStatus(visit.getStatus().toString());
-
-        // Map full patient details
-        Patient p = visit.getPatient();
-        PatientResponseDTO pdto = new PatientResponseDTO();
-        pdto.setUhid(p.getUhid());
-        pdto.setFirstName(p.getFirstName());
-        pdto.setLastName(p.getLastName());
-        pdto.setDateOfBirth(p.getDateOfBirth());
-        pdto.setGender(p.getGender());
-        pdto.setContactNumber(p.getContactNumber());
-        pdto.setAddress(p.getAddress());
-        dto.setPatient(pdto);
-
-        // Map full doctor details
-//        Doctor d = visit.getDoctor();
-//        com.example.hmt.doctor.DoctorDTO ddto = new com.example.hmt.doctor.DoctorDTO();
-//        ddto.setFirstName(d.getFirstName());
-//        ddto.setLastName(d.getLastName());
-//        ddto.setSpecialization(d.getSpecialization());
-//        ddto.setContactNumber(d.getContactNumber());
-//        ddto.setDepartment(d.getDepartment());
-//        dto.setDoctor(ddto);
-
-        return dto;
+        return OPDVisitMapper.mapToOPDVisitResponseDTO(visit, true);
     }
 }

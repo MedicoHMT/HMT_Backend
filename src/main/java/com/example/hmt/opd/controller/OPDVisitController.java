@@ -36,20 +36,27 @@ public class OPDVisitController {
         List<OPDVisitResponseDTO> visits = visitService.getAllVisit(hospitalId);
         return ResponseEntity.ok(visits);
     }
-    @GetMapping("/{OPDid}")
-    public ResponseEntity<OPDVisitResponseDTO> getVisit(@PathVariable String OPDid) {
+    @GetMapping("/{opdVisitId}")
+    public ResponseEntity<OPDVisitResponseDTO> getVisit(@PathVariable String opdVisitId) {
         Long hospitalId = TenantContext.getHospitalId();
-        return visitService.getVisitOPDById(OPDid, hospitalId)
+        return visitService.getOPDVisitByOPDVisitId(opdVisitId, hospitalId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}/status")
+    @GetMapping("/uhid/{uhid}")
+    public ResponseEntity<List<OPDVisitResponseDTO>> getVisitByPatientId(@PathVariable String uhid) {
+        Long hospitalId = TenantContext.getHospitalId();
+        List<OPDVisitResponseDTO> visits = visitService.getAllVisitByUhidAndHospitalId(uhid, hospitalId);
+        return ResponseEntity.ok(visits);
+    }
+
+    @PutMapping("/status/{opdVisitId}")
     public ResponseEntity<OPDVisitResponseDTO> updateVisitStatus(
-            @PathVariable String id,
+            @PathVariable String opdVisitId,
             @RequestBody OPDVisitStatusUpdateDTO dto
     ) {
-        return ResponseEntity.ok(visitService.updateStatus(id, dto));
+        return ResponseEntity.ok(visitService.updateStatus(opdVisitId, dto));
     }
 
 }
