@@ -44,7 +44,7 @@ public class OPDVisitService {
         if (hospitalId == null)
             throw new IllegalArgumentException("Invalid hospital session");
 
-        Patient patient = patientRepository.findPatientByUhid(dto.getPatientUHId())
+        Patient patient = patientRepository.findByUhid(dto.getPatientUHId())
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
         Doctor doctor = doctorRepository.findById(dto.getDoctorId())
