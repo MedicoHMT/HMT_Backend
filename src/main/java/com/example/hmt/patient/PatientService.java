@@ -1,5 +1,6 @@
 package com.example.hmt.patient;
 
+import com.example.hmt.core.handler.exception.ResourceNotFoundException;
 import com.example.hmt.core.tenant.Hospital;
 import com.example.hmt.core.tenant.HospitalRepository;
 import com.example.hmt.core.tenant.TenantContext;
@@ -36,15 +37,16 @@ public class PatientService {
         return patientRepository
                 .findAllByHospital_Id(hospitalId)
                 .stream()
+                .filter(p -> !p.isDeleted())
                 .map(p -> PatientMapper.toPatientResponseDto(p, true))
                 .collect(Collectors.toList());
     }
 
     // Get one patient by their ID
     public PatientResponseDTO getPatientByUhid(String id) {
-        return patientRepository.findPatientByUhid(id)
+        return patientRepository.findByUhid(id)
                 .map(p -> PatientMapper.toPatientResponseDto(p, true))
-                .orElseThrow(() -> new RuntimeException("Patient not found with UHID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not found with UHID: " + id));
     }
 
     // Create a new patient
@@ -87,7 +89,7 @@ public class PatientService {
     // Update an existing patient
     public PatientResponseDTO updatePatient(String uhid, PatientRequestDTO dto) {
 
-        Patient patient = patientRepository.findPatientByUhid(uhid)
+        Patient patient = patientRepository.findByUhid(uhid)
                 .orElseThrow(() -> new RuntimeException("Patient not found with uhid: " + uhid));
 
         updatePatientFields(patient, dto);
@@ -99,7 +101,7 @@ public class PatientService {
 
     // Delete a patient
     public void deletePatient(String uhid) {
-        Patient patient = patientRepository.findPatientByUhid(uhid)
+        Patient patient = patientRepository.findByUhid(uhid)
                 .orElseThrow(() -> new RuntimeException("Patient not found with id: " + uhid));
 
         patient.setDeleted(true);
