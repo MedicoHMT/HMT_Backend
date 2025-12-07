@@ -1,21 +1,38 @@
 package com.example.hmt.patient;
 
+import com.example.hmt.core.enums.Gender;
+import com.example.hmt.core.tenant.Hospital;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
 @Entity
+@Table(name = "patients")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-incrementing ID
+    @Column(name = "patient_id")
     private Long id;
 
-    @Column(name = "hospital_id", nullable = false)
-    private Long hospitalId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "hospital_id", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_patient_hospital"))
+    private Hospital hospital;
 
     // Public patient identifier (UHID)
     @Column(name = "uhid", unique = true)
@@ -29,9 +46,32 @@ public class Patient {
     private String lastName;
 
     private LocalDate dateOfBirth;
-    private String gender;
+    private Gender gender;
+    private String email;
+
     @NotBlank(message = "Contact number cannot be blank")
     @Size(min = 10, max = 15, message = "Contact number must be between 10 and 15 digits")
     private String contactNumber;
+
     private String address;
+    private String photoURL;
+
+    private String emergencyContactName;
+    private String emergencyContactNumber;
+
+//    private String allergySummary;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    private boolean isDeleted;
+
+    public Long getHospitalId() {
+        return hospital != null ? hospital.getId() : null;
+    }
 }
