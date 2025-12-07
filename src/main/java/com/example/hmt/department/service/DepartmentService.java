@@ -1,6 +1,5 @@
 package com.example.hmt.department.service;
 
-import com.example.hmt.core.auth.repository.UserRepository;
 import com.example.hmt.core.tenant.TenantContext;
 import com.example.hmt.department.dto.DepartmentRequestDTO;
 import com.example.hmt.department.dto.DepartmentResponseDTO;
@@ -18,7 +17,6 @@ import java.util.stream.Collectors;
 public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
-    private final UserRepository userRepository;
 
     @Transactional
     public DepartmentResponseDTO createDepartmentForHospital(DepartmentRequestDTO dto) {
@@ -53,27 +51,26 @@ public class DepartmentService {
 
         dept = departmentRepository.save(dept);
 
+        return  DepartmentResponseDTO.builder()
+                .department_id(dept.getDepartment_id())
+                .name(dept.getName())
+                .code(dept.getCode())
+                .description(dept.getDescription())
+                .build();
 
-        DepartmentResponseDTO resp = new DepartmentResponseDTO();
-        resp.setDepartment_id(dept.getDepartment_id());
-        resp.setCode(dept.getCode());
-        resp.setName(dept.getName());
-        resp.setDescription(dept.getDescription());
-        return resp;
+
     }
 
     public List<DepartmentResponseDTO> getAllDepartment() {
         Long hospitalId = TenantContext.getHospitalId();
         List<Department> departments = departmentRepository.findAllByHospitalId(hospitalId);
         return departments.stream()
-                .map(d -> {
-                    DepartmentResponseDTO dto = new DepartmentResponseDTO();
-                    dto.setDepartment_id(d.getDepartment_id());
-                    dto.setName(d.getName());
-                    dto.setDescription(d.getDescription());
-                    dto.setCode(d.getCode());
-                    return dto;
-                })
+                .map(d -> DepartmentResponseDTO.builder()
+                        .department_id(d.getDepartment_id())
+                        .name(d.getName())
+                        .code(d.getCode())
+                        .description(d.getDescription())
+                        .build())
                 .collect(Collectors.toList());
     }
 
