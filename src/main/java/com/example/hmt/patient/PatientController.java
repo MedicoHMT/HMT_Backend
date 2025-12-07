@@ -24,8 +24,8 @@ public class PatientController {
 
     // GET /api/v1/patients/1  (Get patient by UHID)
     @GetMapping("/{uhid}")
-    public ResponseEntity<PatientResponseDTO> getPatientById(@PathVariable String uhid) {
-        return patientService.getPatientById(uhid)
+    public ResponseEntity<PatientResponseDTO> getPatientByUhid(@PathVariable String uhid) {
+        return patientService.getPatientByUhid(uhid)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -37,10 +37,10 @@ public class PatientController {
     }
 
     // PUT /api/v1/patients/1  (Update patient by ID)
-    @PutMapping("/{id}")
-    public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Long id, @Valid @RequestBody PatientRequestDTO patientDetails) {
+    @PutMapping("/{uhid}")
+    public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable String uhid, @Valid @RequestBody PatientRequestDTO patientDetails) {
         try {
-            PatientResponseDTO updatedPatient = patientService.updatePatient(id, patientDetails);
+            PatientResponseDTO updatedPatient = patientService.updatePatient(uhid, patientDetails);
             return ResponseEntity.ok(updatedPatient);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
