@@ -31,8 +31,7 @@ public class Patient {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "hospital_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_patient_hospital"),
-            unique = true)
+            foreignKey = @ForeignKey(name = "fk_patient_hospital"))
     private Hospital hospital;
 
     // Public patient identifier (UHID)
@@ -69,6 +68,8 @@ public class Patient {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    private boolean isDeleted;
 
     public Long getHospitalId() {
         return hospital != null ? hospital.getId() : null;

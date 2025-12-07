@@ -25,9 +25,7 @@ public class PatientController {
     // GET /api/v1/patients/1  (Get patient by UHID)
     @GetMapping("/{uhid}")
     public ResponseEntity<PatientResponseDTO> getPatientByUhid(@PathVariable String uhid) {
-        return patientService.getPatientByUhid(uhid)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(patientService.getPatientByUhid(uhid));
     }
 
     // POST /api/v1/patients  (Create a new patient)
@@ -48,7 +46,7 @@ public class PatientController {
     }
 
     // DELETE /api/v1/patients/1  (Delete patient by ID)
-    @DeleteMapping("/{uhid}")
+    @PostMapping("/delete/{uhid}")
     public ResponseEntity<Void> deletePatient(@PathVariable String uhid) {
         try {
             patientService.deletePatient(uhid);

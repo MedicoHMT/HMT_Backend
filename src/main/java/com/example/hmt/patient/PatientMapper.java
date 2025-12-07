@@ -3,8 +3,9 @@ package com.example.hmt.patient;
 import com.example.hmt.patient.dto.PatientResponseDTO;
 
 public class PatientMapper {
-    public static PatientResponseDTO toPatientResponseDto(Patient p) {
+    public static PatientResponseDTO toPatientResponseDto(Patient p, Boolean deletedNotRequired) {
         if (p == null) return null;
+        if(p.isDeleted() && deletedNotRequired) return null;
 
         PatientResponseDTO d = new PatientResponseDTO();
         d.setUhid(p.getUhid());

@@ -7,6 +7,7 @@ import com.example.hmt.patient.dto.PatientRequestDTO;
 import com.example.hmt.patient.dto.PatientResponseDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -23,15 +24,27 @@ public class PatientService {
 
     @Autowired
     private HospitalRepository hospitalRepository;
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     // Get all patients
     public List<PatientResponseDTO> getAllPatients() {
-        return patientRepository.findAll().stream().map(PatientMapper::toPatientResponseDto).collect(Collectors.toList());
+        Long hospitalId = TenantContext.getHospitalId();
+        if(hospitalId == null) {
+            throw new IllegalArgumentException("Invalid hospital id");
+        }
+        return patientRepository
+                .findAllByHospital_Id(hospitalId)
+                .stream()
+                .map(p -> PatientMapper.toPatientResponseDto(p, true))
+                .collect(Collectors.toList());
     }
 
     // Get one patient by their ID
-    public Optional<PatientResponseDTO> getPatientByUhid(String id) {
-        return patientRepository.findPatientByUhid(id).map(PatientMapper::toPatientResponseDto);
+    public PatientResponseDTO getPatientByUhid(String id) {
+        return patientRepository.findPatientByUhid(id)
+                .map(p -> PatientMapper.toPatientResponseDto(p, true))
+                .orElseThrow(() -> new RuntimeException("Patient not found with UHID: " + id));
     }
 
     // Create a new patient
@@ -58,39 +71,30 @@ public class PatientService {
                 .emergencyContactNumber(patient.getEmergencyContactNumber())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
+                .isDeleted(false)
                 .build();
 
         Patient saved = patientRepository.save(newPatient);
 
-        String newUhid = String.format("U%d%d", LocalDate.now().getYear(), saved.getId());
+        String newUhid = String.format("U%s%d", hospital.getHospitalCode(), saved.getId());
         newPatient.setUhid(newUhid);
-        newPatient.setCreatedAt(Instant.now());
 
         // Save and return the created Patient DTO (without id/hospitalId)
         saved = patientRepository.save(newPatient);
-        return PatientMapper.toPatientResponseDto(saved);
+        return PatientMapper.toPatientResponseDto(saved, true);
     }
 
     // Update an existing patient
-    public PatientResponseDTO updatePatient(String uhid, PatientRequestDTO patientDetails) {
+    public PatientResponseDTO updatePatient(String uhid, PatientRequestDTO dto) {
+
         Patient patient = patientRepository.findPatientByUhid(uhid)
                 .orElseThrow(() -> new RuntimeException("Patient not found with uhid: " + uhid));
 
-        // Update the fields from DTO
-        patient.setFirstName(patientDetails.getFirstName());
-        patient.setLastName(patientDetails.getLastName());
-        patient.setDateOfBirth(patientDetails.getDateOfBirth());
-        patient.setGender(patientDetails.getGender());
-        patient.setEmail(patientDetails.getEmail());
-        patient.setContactNumber(patientDetails.getContactNumber());
-        patient.setAddress(patientDetails.getAddress());
-        patient.setPhotoURL(patientDetails.getPhotoURL());
-        patient.setEmergencyContactName(patient.getEmergencyContactName());
-        patient.setEmergencyContactNumber(patient.getEmergencyContactNumber());
+        updatePatientFields(patient, dto);
         patient.setUpdatedAt(Instant.now());
 
         Patient updated = patientRepository.save(patient);
-        return PatientMapper.toPatientResponseDto(updated);
+        return PatientMapper.toPatientResponseDto(updated, true);
     }
 
     // Delete a patient
@@ -98,6 +102,23 @@ public class PatientService {
         Patient patient = patientRepository.findPatientByUhid(uhid)
                 .orElseThrow(() -> new RuntimeException("Patient not found with id: " + uhid));
 
-        patientRepository.delete(patient);
+        patient.setDeleted(true);
+        patient.setUpdatedAt(Instant.now());
+
+        patientRepository.save(patient);
+    }
+
+    private void updatePatientFields(Patient patient, PatientRequestDTO dto) {
+
+        if (dto.getFirstName() != null) patient.setFirstName(dto.getFirstName());
+        if (dto.getLastName() != null) patient.setLastName(dto.getLastName());
+        if (dto.getDateOfBirth() != null) patient.setDateOfBirth(dto.getDateOfBirth());
+        if (dto.getGender() != null) patient.setGender(dto.getGender());
+        if (dto.getEmail() != null) patient.setEmail(dto.getEmail());
+        if (dto.getContactNumber() != null) patient.setContactNumber(dto.getContactNumber());
+        if (dto.getAddress() != null) patient.setAddress(dto.getAddress());
+        if (dto.getPhotoURL() != null) patient.setPhotoURL(dto.getPhotoURL());
+        if (dto.getEmergencyContactName() != null) patient.setEmergencyContactName(dto.getEmergencyContactName());
+        if (dto.getEmergencyContactNumber() != null) patient.setEmergencyContactNumber(dto.getEmergencyContactNumber());
     }
 }
