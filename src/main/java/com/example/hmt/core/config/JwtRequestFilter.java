@@ -17,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -34,6 +35,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String jwt = null;
         String username = null;
         Long hospitalId = null;
+        UUID userId = null;
 
         try {
 
@@ -41,10 +43,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 jwt = header.substring(7);
                 username = jwtService.extractUsername(jwt);
                 hospitalId = jwtService.extractHospitalId(jwt);
+                userId = jwtService.extractUserId(jwt);
             }
 
             if (hospitalId != null) {
                 TenantContext.setHospitalId(hospitalId);
+            }
+            if (userId != null) {
+                TenantContext.setUserId(userId);
             }
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

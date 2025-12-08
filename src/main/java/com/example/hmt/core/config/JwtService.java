@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -31,7 +32,7 @@ public class JwtService {
         return Jwts
                 .builder()
                 .subject(email)
-                .claim("role", role)
+                .claim("role", role != null ? role.name() : null)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -51,8 +52,20 @@ public class JwtService {
         return extractAllClaims(token).get("hospitalId", Long.class);
     }
 
+    public UUID extractUserId(String token) {
+        Object raw = extractAllClaims(token).get("userId");
+        if (raw == null) return null;
+        if (raw instanceof UUID) return (UUID) raw;
+        try {
+            return UUID.fromString(raw.toString());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     public String extractRole(String token) {
-        return extractAllClaims(token).get("role", String.class);
+        Object raw = extractAllClaims(token).get("role");
+        return raw == null ? null : raw.toString();
     }
 
     private Claims extractAllClaims(String token) {
@@ -62,6 +75,7 @@ public class JwtService {
                 .build().parseSignedClaims(token)
                 .getBody();
     }
+
 
 
     public String generateToken(User user) {
@@ -76,6 +90,7 @@ public class JwtService {
                 .builder()
                 .subject(user.getUsername())
                 .claim("role", user.getRole().name())
+                .claim("userId", user.getId() != null ? user.getId().toString() : null)
                 .claim("hospitalId", hospitalId)
                 .claim("hospitalName", hospitalName)
                 .claim("permissions", user.getPermissions())

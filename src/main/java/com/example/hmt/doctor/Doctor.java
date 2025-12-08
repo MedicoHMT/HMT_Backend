@@ -1,17 +1,13 @@
 package com.example.hmt.doctor;
 
 import com.example.hmt.core.auth.model.User;
-import com.example.hmt.core.tenant.Hospital;
+import com.example.hmt.core.tenant.BaseEntity;
 import com.example.hmt.department.model.Department;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.Instant;
 
 
 @Entity
@@ -24,7 +20,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Doctor {
+public class Doctor extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,14 +38,6 @@ public class Doctor {
     private User user;
 
     /**
-     * Hospital FK. Use ManyToOne to enforce referential integrity.
-     */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "hospital_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_doctor_hospital"))
-    private Hospital hospital;
-
-    /**
      * This references your Department table.
      */
     @ManyToOne(fetch = FetchType.LAZY)
@@ -64,23 +52,8 @@ public class Doctor {
 
     private int consultation_fee;
 
-    /**
-     * Auditing fields
-     */
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private Instant createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Instant updatedAt;
-
 
     public Long getHospitalId() {
-        return hospital != null ? hospital.getId() : null;
-    }
-
-    public java.util.UUID getUserId() {
-        return user != null ? user.getId() : null;
+        return super.getHospitalId();
     }
 }

@@ -16,6 +16,7 @@ public class DoctorController {
 
     @GetMapping("/list")
     public List<DoctorResponseDTO> getDoctorList() {
+
         return doctorService.getAllDoctors();
     }
 
