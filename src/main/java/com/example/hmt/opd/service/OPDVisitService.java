@@ -3,8 +3,6 @@ package com.example.hmt.opd.service;
 import com.example.hmt.core.auth.model.User;
 import com.example.hmt.core.auth.repository.UserRepository;
 import com.example.hmt.core.handler.exception.ResourceNotFoundException;
-import com.example.hmt.core.tenant.Hospital;
-import com.example.hmt.core.tenant.HospitalRepository;
 import com.example.hmt.core.tenant.TenantContext;
 import com.example.hmt.department.model.Department;
 import com.example.hmt.department.repository.DepartmentRepository;
@@ -34,21 +32,18 @@ public class OPDVisitService {
     private final OPDVisitRepository visitRepository;
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
-    private final HospitalRepository hospitalRepository;
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
 
     public OPDVisitService(OPDVisitRepository visitRepository,
                            PatientRepository patientRepository,
                            DoctorRepository doctorRepository,
-                           HospitalRepository hospitalRepository,
                            DepartmentRepository departmentRepository,
                            UserRepository userRepository
     ) {
         this.visitRepository = visitRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
-        this.hospitalRepository = hospitalRepository;
         this.departmentRepository = departmentRepository;
         this.userRepository = userRepository;
     }
@@ -56,12 +51,6 @@ public class OPDVisitService {
 
     @Transactional
     public OPDVisitResponseDTO createVisit(OPDVisitRequestDTO dto) {
-
-        Long hospitalId = TenantContext.getHospitalId();
-        if (hospitalId == null)
-            throw new IllegalArgumentException("Invalid hospital session");
-        Hospital hospital = hospitalRepository.findById(hospitalId)
-                .orElseThrow(() -> new ResourceNotFoundException("Hospital not found"));
 
         Patient patient = patientRepository.findByUhid(dto.getPatientUHId())
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
@@ -81,14 +70,9 @@ public class OPDVisitService {
                 .triageLevel(dto.getTriageLevel())
                 .opdVisitDate(Instant.now())
                 .consultationFee(dto.getConsultationFee())
-                .hospital(hospital)
                 .patient(patient)
                 .doctor(doctor)
                 .department(department)
-                .createdBy(user)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .isDeleted(false)
                 .build();
 
         visit = visitRepository.save(visit);

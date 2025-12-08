@@ -1,6 +1,5 @@
 package com.example.hmt.core.config;
 
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,11 +30,6 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint entryPoint;
 
     @Bean
-    public HibernateTenantFilter hibernateTenantFilter(EntityManager entityManager) {
-        return new HibernateTenantFilter(entityManager);
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
@@ -63,7 +57,6 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-        http.addFilterAfter(hibernateTenantFilter(null), JwtRequestFilter.class);
         return http.build();
     }
 

@@ -12,9 +12,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,13 +23,11 @@ public class PatientService {
 
     @Autowired
     private HospitalRepository hospitalRepository;
-    @Autowired
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     // Get all patients
     public List<PatientResponseDTO> getAllPatients() {
         Long hospitalId = TenantContext.getHospitalId();
-        if(hospitalId == null) {
+        if (hospitalId == null) {
             throw new IllegalArgumentException("Invalid hospital id");
         }
         return patientRepository
@@ -60,7 +56,6 @@ public class PatientService {
             throw new IllegalArgumentException("Invalid hospital session");
 
         Patient newPatient = Patient.builder()
-                .hospital(hospital)
                 .firstName(patient.getFirstName())
                 .lastName(patient.getLastName())
                 .dateOfBirth(patient.getDateOfBirth())
@@ -71,9 +66,6 @@ public class PatientService {
                 .photoURL(patient.getPhotoURL())
                 .emergencyContactName(patient.getEmergencyContactName())
                 .emergencyContactNumber(patient.getEmergencyContactNumber())
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .isDeleted(false)
                 .build();
 
         Patient saved = patientRepository.save(newPatient);
