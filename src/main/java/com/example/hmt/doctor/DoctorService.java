@@ -1,5 +1,6 @@
 package com.example.hmt.doctor;
 
+import com.example.hmt.core.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,9 +15,12 @@ public class DoctorService {
     private DoctorRepository doctorRepository;
 
     public List<DoctorResponseDTO> getAllDoctors() {
-
+        Long hospitalId = TenantContext.getHospitalId();
+        if(hospitalId == null) {
+            throw new IllegalArgumentException("Invalid hospital id");
+        }
         return doctorRepository
-                .findAll()
+                .findAllByHospital_Id(hospitalId)
                 .stream()
                 .map(DoctorMapper::toDoctorResponseDto)
                 .collect(Collectors.toList());
