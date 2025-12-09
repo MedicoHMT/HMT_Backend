@@ -1,7 +1,5 @@
 package com.example.hmt.opd.service;
 
-import com.example.hmt.core.auth.model.User;
-import com.example.hmt.core.auth.repository.UserRepository;
 import com.example.hmt.core.handler.exception.ResourceNotFoundException;
 import com.example.hmt.core.tenant.TenantContext;
 import com.example.hmt.department.model.Department;
@@ -20,7 +18,6 @@ import com.example.hmt.patient.PatientRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
@@ -33,19 +30,16 @@ public class OPDVisitService {
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final DepartmentRepository departmentRepository;
-    private final UserRepository userRepository;
 
     public OPDVisitService(OPDVisitRepository visitRepository,
                            PatientRepository patientRepository,
                            DoctorRepository doctorRepository,
-                           DepartmentRepository departmentRepository,
-                           UserRepository userRepository
+                           DepartmentRepository departmentRepository
     ) {
         this.visitRepository = visitRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
         this.departmentRepository = departmentRepository;
-        this.userRepository = userRepository;
     }
 
 
@@ -61,14 +55,12 @@ public class OPDVisitService {
         Department department = departmentRepository.findById(dto.getDepartmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Department no found"));
 
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
         OPDVisit visit = OPDVisit.builder()
                 .opdVisitType(dto.getOpdType())
                 .reason(dto.getReason())
                 .triageLevel(dto.getTriageLevel())
-                .opdVisitDate(Instant.now())
+                .status(dto.getStatus())
+                .opdVisitDate(dto.getOpdVisitDateTime())
                 .consultationFee(dto.getConsultationFee())
                 .patient(patient)
                 .doctor(doctor)

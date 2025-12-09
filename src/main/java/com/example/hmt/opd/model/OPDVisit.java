@@ -5,7 +5,6 @@ import com.example.hmt.department.model.Department;
 import com.example.hmt.doctor.Doctor;
 import com.example.hmt.patient.Patient;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.FutureOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,7 +36,6 @@ public class OPDVisit extends BaseEntity {
     private VisitStatus status = VisitStatus.ACTIVE;
 
     @Column(name = "visit_date")
-    @FutureOrPresent
     private Instant opdVisitDate;
 
     @Column(name = "consultation_fee")
