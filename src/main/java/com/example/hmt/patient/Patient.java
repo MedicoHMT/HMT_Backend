@@ -1,20 +1,15 @@
 package com.example.hmt.patient;
 
 import com.example.hmt.core.enums.Gender;
-import com.example.hmt.core.tenant.Hospital;
+import com.example.hmt.core.tenant.BaseEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
@@ -23,16 +18,11 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Patient {
+public class Patient extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-incrementing ID
     @Column(name = "patient_id")
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "hospital_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_patient_hospital"))
-    private Hospital hospital;
 
     // Public patient identifier (UHID)
     @Column(name = "uhid", unique = true)
@@ -59,19 +49,8 @@ public class Patient {
     private String emergencyContactName;
     private String emergencyContactNumber;
 
-//    private String allergySummary;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private Instant createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Instant updatedAt;
-
-    private boolean isDeleted;
 
     public Long getHospitalId() {
-        return hospital != null ? hospital.getId() : null;
+        return super.getHospitalId();
     }
 }

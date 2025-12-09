@@ -1,18 +1,14 @@
 package com.example.hmt.opd.model;
 
-import com.example.hmt.core.auth.model.User;
-import com.example.hmt.core.tenant.Hospital;
+import com.example.hmt.core.tenant.BaseEntity;
 import com.example.hmt.department.model.Department;
 import com.example.hmt.doctor.Doctor;
 import com.example.hmt.patient.Patient;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.FutureOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
@@ -22,7 +18,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OPDVisit {
+public class OPDVisit extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -40,17 +36,10 @@ public class OPDVisit {
     private VisitStatus status = VisitStatus.ACTIVE;
 
     @Column(name = "visit_date")
-    @FutureOrPresent
     private Instant opdVisitDate;
 
     @Column(name = "consultation_fee")
     private int consultationFee;
-
-    // Added for multi-tenant support
-    @ManyToOne
-    @JoinColumn(name = "hospital_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_opd_visit_hospital"))
-    private Hospital hospital;
 
     // Patient relationship
     @ManyToOne
@@ -69,23 +58,9 @@ public class OPDVisit {
             foreignKey = @ForeignKey(name = "fk_opd_visit_department"))
     private Department department;
 
-    @ManyToOne
-    @JoinColumn(name = "created_by", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_opd_visit_user"))
-    private User createdBy;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private Instant createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Instant updatedAt;
-
-    private boolean isDeleted;
 
     public Long getHospitalId() {
-        return hospital != null ? hospital.getId() : null;
+        return super.getHospitalId();
     }
 
     public Long getPatientId() {

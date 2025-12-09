@@ -142,7 +142,6 @@ public class AuthService {
         // Create and persist doctor
         Doctor doctor = Doctor.builder()
                 .user(user)
-                .hospital(admin.getHospital())
                 .department(department)
                 .specialization(dto.getSpecialization())
                 .consultation_fee(dto.getConsultation_fee())
