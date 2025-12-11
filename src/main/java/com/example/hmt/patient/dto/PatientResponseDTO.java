@@ -9,6 +9,7 @@ import java.time.LocalDate;
 public class PatientResponseDTO {
     private String uhid;
     private String firstName;
+    private String middleName;
     private String lastName;
 
     private LocalDate dateOfBirth;

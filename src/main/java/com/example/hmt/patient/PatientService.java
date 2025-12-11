@@ -1,9 +1,7 @@
 package com.example.hmt.patient;
 
 import com.example.hmt.core.handler.exception.ResourceNotFoundException;
-import com.example.hmt.core.tenant.Hospital;
-import com.example.hmt.core.tenant.HospitalRepository;
-import com.example.hmt.core.tenant.TenantContext;
+import com.example.hmt.core.tenant.*;
 import com.example.hmt.patient.dto.PatientRequestDTO;
 import com.example.hmt.patient.dto.PatientResponseDTO;
 import jakarta.transaction.Transactional;
@@ -55,14 +53,27 @@ public class PatientService {
         if (hospital == null)
             throw new IllegalArgumentException("Invalid hospital session");
 
-        Patient newPatient = Patient.builder()
+        Name patientName = Name.builder()
                 .firstName(patient.getFirstName())
+                .middleName(patient.getMiddleName())
                 .lastName(patient.getLastName())
+                .build();
+
+        Address patientAddress = Address.builder()
+                .street(patient.getStreet())
+                .city(patient.getCity())
+                .state(patient.getState())
+                .country(patient.getCountry())
+                .pinCode(patient.getPinCode())
+                .build();
+
+        Patient newPatient = Patient.builder()
+                .name(patientName)
                 .dateOfBirth(patient.getDateOfBirth())
                 .gender(patient.getGender())
                 .email(patient.getEmail())
                 .contactNumber(patient.getContactNumber())
-                .address(patient.getAddress())
+                .address(patientAddress)
                 .photoURL(patient.getPhotoURL())
                 .emergencyContactName(patient.getEmergencyContactName())
                 .emergencyContactNumber(patient.getEmergencyContactNumber())
@@ -104,13 +115,21 @@ public class PatientService {
 
     private void updatePatientFields(Patient patient, PatientRequestDTO dto) {
 
-        if (dto.getFirstName() != null) patient.setFirstName(dto.getFirstName());
-        if (dto.getLastName() != null) patient.setLastName(dto.getLastName());
+        if (dto.getFirstName() != null) patient.getName().setFirstName(dto.getFirstName());
+        if (dto.getMiddleName() != null) patient.getName().setMiddleName(dto.getMiddleName());
+        if (dto.getLastName() != null) patient.getName().setLastName(dto.getLastName());
+
         if (dto.getDateOfBirth() != null) patient.setDateOfBirth(dto.getDateOfBirth());
         if (dto.getGender() != null) patient.setGender(dto.getGender());
         if (dto.getEmail() != null) patient.setEmail(dto.getEmail());
         if (dto.getContactNumber() != null) patient.setContactNumber(dto.getContactNumber());
-        if (dto.getAddress() != null) patient.setAddress(dto.getAddress());
+
+        if (dto.getStreet() != null) patient.getAddress().setStreet(dto.getStreet());
+        if (dto.getCity() != null) patient.getAddress().setCity(dto.getCity());
+        if (dto.getState() != null) patient.getAddress().setState(dto.getState());
+        if (dto.getCountry() != null) patient.getAddress().setCountry(dto.getCountry());
+        if (dto.getPinCode() != null) patient.getAddress().setPinCode(dto.getPinCode());
+
         if (dto.getPhotoURL() != null) patient.setPhotoURL(dto.getPhotoURL());
         if (dto.getEmergencyContactName() != null) patient.setEmergencyContactName(dto.getEmergencyContactName());
         if (dto.getEmergencyContactNumber() != null) patient.setEmergencyContactNumber(dto.getEmergencyContactNumber());
