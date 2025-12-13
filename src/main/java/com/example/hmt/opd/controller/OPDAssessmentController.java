@@ -3,7 +3,6 @@ package com.example.hmt.opd.controller;
 import com.example.hmt.core.tenant.TenantContext;
 import com.example.hmt.opd.dto.request.OPDAssessmentRequestDTO;
 import com.example.hmt.opd.dto.response.OPDAssessmentResponseDTO;
-import com.example.hmt.opd.model.OPDAssessment;
 import com.example.hmt.opd.service.OPDAssessmentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

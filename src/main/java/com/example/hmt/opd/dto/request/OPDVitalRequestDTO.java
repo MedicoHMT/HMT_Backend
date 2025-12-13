@@ -3,8 +3,6 @@ package com.example.hmt.opd.dto.request;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.Instant;
-
 @Data
 @Builder
 public class OPDVitalRequestDTO {

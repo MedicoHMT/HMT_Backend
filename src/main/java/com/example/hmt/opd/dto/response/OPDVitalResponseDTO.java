@@ -1,10 +1,7 @@
 package com.example.hmt.opd.dto.response;
 
-import com.example.hmt.core.auth.model.User;
 import lombok.Builder;
 import lombok.Data;
-
-import java.time.Instant;
 
 @Data
 @Builder
