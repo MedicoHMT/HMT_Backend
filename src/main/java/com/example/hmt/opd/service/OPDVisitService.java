@@ -9,10 +9,16 @@ import com.example.hmt.doctor.DoctorRepository;
 import com.example.hmt.opd.dto.OPDVisitRequestDTO;
 import com.example.hmt.opd.dto.OPDVisitResponseDTO;
 import com.example.hmt.opd.dto.OPDVisitStatusUpdateDTO;
+import com.example.hmt.opd.dto.response.OPDDetailedVisitResponseDTO;
+import com.example.hmt.opd.mapper.OPDDetailedVisitMapper;
 import com.example.hmt.opd.mapper.OPDVisitMapper;
+import com.example.hmt.opd.model.OPDAssessment;
 import com.example.hmt.opd.model.OPDVisit;
+import com.example.hmt.opd.model.OPDVitals;
 import com.example.hmt.opd.model.VisitStatus;
+import com.example.hmt.opd.repository.OPDAssessmentRepository;
 import com.example.hmt.opd.repository.OPDVisitRepository;
+import com.example.hmt.opd.repository.OPDVitalsRepository;
 import com.example.hmt.patient.Patient;
 import com.example.hmt.patient.PatientRepository;
 import jakarta.transaction.Transactional;
@@ -30,16 +36,22 @@ public class OPDVisitService {
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final DepartmentRepository departmentRepository;
+    private final OPDVitalsRepository vitalsRepository;
+    private final OPDAssessmentRepository assessmentRepository;
 
     public OPDVisitService(OPDVisitRepository visitRepository,
                            PatientRepository patientRepository,
                            DoctorRepository doctorRepository,
-                           DepartmentRepository departmentRepository
+                           DepartmentRepository departmentRepository,
+                           OPDVitalsRepository vitalsRepository,
+                           OPDAssessmentRepository assessmentRepository
     ) {
         this.visitRepository = visitRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
         this.departmentRepository = departmentRepository;
+        this.vitalsRepository = vitalsRepository;
+        this.assessmentRepository = assessmentRepository;
     }
 
 
@@ -82,6 +94,15 @@ public class OPDVisitService {
     public Optional<OPDVisitResponseDTO> getOPDVisitByOPDVisitId(String opdVisitId, Long hospitalId) {
         return visitRepository.findByOpdVisitIdAndHospital_Id(opdVisitId, hospitalId)
                 .map(visit -> OPDVisitMapper.mapToOPDVisitResponseDTO(visit, true));
+    }
+
+    public Optional<OPDDetailedVisitResponseDTO> getOPDDetailedVisitByOPDVisitId(String opdVisitId, Long hospitalId) {
+        OPDVitals vitals = vitalsRepository.findByOpdVisit_OpdVisitIdAndHospital_Id(opdVisitId, hospitalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vitals not found"));
+        OPDAssessment assessment = assessmentRepository.findByOpdVisit_OpdVisitIdAndHospital_Id(opdVisitId, hospitalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Assessment not found"));
+        return visitRepository.findByOpdVisitIdAndHospital_Id(opdVisitId, hospitalId)
+                .map(visit -> OPDDetailedVisitMapper.mapToOPDDetailedVisitResponseDTO(visit, vitals, assessment, true));
     }
 
     public List<OPDVisitResponseDTO> getAllVisit(Long hospitalId) {
