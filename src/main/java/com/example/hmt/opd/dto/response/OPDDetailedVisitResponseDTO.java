@@ -29,4 +29,5 @@ public class OPDDetailedVisitResponseDTO {
 
     private OPDVitalResponseDTO opdVital;
     private OPDAssessmentResponseDTO opdAssessment;
+    private OPDDiagnosisResponseDTO opdDiagnosis;
 }
