@@ -14,6 +14,7 @@ public class OPDVisitRequestDTO {
     private Long doctorId;
     private Long departmentId;
 
+    private String referBy;
     private Instant opdVisitDateTime;
     private int consultationFee;
     private String opdType;

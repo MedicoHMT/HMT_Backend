@@ -16,6 +16,7 @@ public class OPDVisitResponseDTO {
     private String opdId;
     private String opdType;
 
+    private String referBy;
     private Long tokenNumber;
     private String reason;
     private String triageLevel;

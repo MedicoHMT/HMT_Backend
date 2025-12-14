@@ -65,6 +65,7 @@ public class OPDVisitService {
                 .patient(patient)
                 .doctor(doctor)
                 .department(department)
+                .referBy(dto.getReferBy())
                 .build();
 
         visit = visitRepository.save(visit);

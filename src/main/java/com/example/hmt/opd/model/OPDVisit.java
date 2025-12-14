@@ -32,6 +32,9 @@ public class OPDVisit extends BaseEntity {
     private String reason;
     private String triageLevel;
 
+    @Column(name = "refer_by")
+    private String referBy;
+
     @Enumerated(EnumType.STRING)
     private VisitStatus status = VisitStatus.ACTIVE;
 

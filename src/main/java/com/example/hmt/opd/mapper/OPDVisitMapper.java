@@ -23,6 +23,7 @@ public class OPDVisitMapper {
                 .patient(PatientMapper.toPatientResponseDto(visit.getPatient(), false))
                 .doctor(DoctorMapper.toDoctorResponseDto(visit.getDoctor()))
                 .department(DepartmentMapper.toDepartmentRequestDTO(visit.getDepartment()))
+                .referBy(visit.getReferBy())
                 .build();
     }
 }
