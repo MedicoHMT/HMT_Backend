@@ -12,31 +12,40 @@ import java.time.Instant;
 
 @Data
 @Entity
-@Table(name = "opd_diagnosis")
+@Table(name = "opd_investigation")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OPDDiagnosis extends BaseEntity {
+public class OPDInvestigation extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "opd_diagnosis_id")
+    @Column(name = "id")
     private Long id;
 
-    @OneToOne
+    @Column(name = "opd_investigation_id", unique = true)
+    private String opdInvestigationId;
+
+    @ManyToOne
     @JoinColumn(name = "opd_visit_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_opd_diagnosis_opd_visit"))
+            foreignKey = @ForeignKey(name = "fk_opd_investigation_opd_visit"))
     private OPDVisit opdVisit;
 
-    @Column(name = "icd10_code")
-    private String icd10Code;
+    @Column(name = "testName")
+    private String testName;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "category")
+    private String category;
+
+    @Column(name = "isUrgent")
+    private boolean isUrgent;
+
+    @Column(name = "status")
+    private String status;
 
     @Column(name = "recorded_at")
     private Instant recordedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recorded_by", foreignKey = @ForeignKey(name = "fk_opd_diagnosis_recorded_by"))
+    @JoinColumn(name = "recorded_by", foreignKey = @ForeignKey(name = "fk_opd_investigation_recorded_by"))
     private User recordedBy;
 }

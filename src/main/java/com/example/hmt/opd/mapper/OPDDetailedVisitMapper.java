@@ -3,13 +3,12 @@ package com.example.hmt.opd.mapper;
 import com.example.hmt.department.DepartmentMapper;
 import com.example.hmt.doctor.DoctorMapper;
 import com.example.hmt.opd.dto.response.OPDDetailedVisitResponseDTO;
-import com.example.hmt.opd.model.OPDAssessment;
-import com.example.hmt.opd.model.OPDDiagnosis;
-import com.example.hmt.opd.model.OPDVisit;
-import com.example.hmt.opd.model.OPDVitals;
+import com.example.hmt.opd.model.*;
 import com.example.hmt.patient.PatientMapper;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class OPDDetailedVisitMapper {
     public static OPDDetailedVisitResponseDTO mapToOPDDetailedVisitResponseDTO(
@@ -17,6 +16,7 @@ public class OPDDetailedVisitMapper {
             Optional<OPDVitals> vitals,
             Optional<OPDAssessment> assessment,
             Optional<OPDDiagnosis> diagnosis,
+            List<OPDInvestigation> investigations,
             boolean deletedNotRequired) {
         if (visit == null) return null;
         if (visit.isDeleted() && deletedNotRequired) return null;
@@ -47,6 +47,11 @@ public class OPDDetailedVisitMapper {
                         diagnosis.map(diagnosis1 ->
                                         OPDDiagnosisMapper.mapToOPDDiagnosisResponseDTO(diagnosis1, false))
                                 .orElse(null)
+                )
+                .opdInvestigations(
+                        investigations.stream()
+                                .map(investigation -> OPDInvestigationMapper.mapToOPDInvestigationResponseDTO(investigation, false))
+                                .collect(Collectors.toList())
                 )
                 .build();
     }

@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @Builder
@@ -30,4 +31,5 @@ public class OPDDetailedVisitResponseDTO {
     private OPDVitalResponseDTO opdVital;
     private OPDAssessmentResponseDTO opdAssessment;
     private OPDDiagnosisResponseDTO opdDiagnosis;
+    private List<OPDInvestigationResponseDTO> opdInvestigations;
 }

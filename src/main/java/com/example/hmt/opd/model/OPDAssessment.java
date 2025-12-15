@@ -24,7 +24,7 @@ public class OPDAssessment extends BaseEntity {
 
     @OneToOne
     @JoinColumn(name = "opd_visit_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_opd_vital_opd_visit"))
+            foreignKey = @ForeignKey(name = "fk_opd_assessment_opd_visit"))
     private OPDVisit opdVisit;
 
     @Column(name = "symptoms")
@@ -49,6 +49,6 @@ public class OPDAssessment extends BaseEntity {
     private Instant recordedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recorded_by", foreignKey = @ForeignKey(name = "fk_opd_vital_recorded_by"))
+    @JoinColumn(name = "recorded_by", foreignKey = @ForeignKey(name = "fk_opd_assessment_recorded_by"))
     private User recordedBy;
 }
