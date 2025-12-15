@@ -151,18 +151,18 @@ public class OtpService {
         if (otpStore.isLocked(key)) throw new IllegalStateException("account_locked");
 
         String hash = otpStore.getOtpHash(key);
-        //if (hash == null) throw new IllegalStateException("otp_expired");
+        if (hash == null) throw new IllegalStateException("otp_expired");
 
-//        if (!encoder.matches(otp, hash)) {
-//            // Handle Failure
-//            long attempts = otpStore.incrAttempts("attempts:" + key, (int) OTP_TTL.getSeconds());
-//            if (attempts >= MAX_ATTEMPTS) {
-//                otpStore.setLock(key, (int) LOCK_DURATION.getSeconds());
-//                otpStore.deleteOtp(key);
-//                throw new IllegalStateException("account_locked");
-//            }
-//            throw new IllegalArgumentException("invalid");
-//        }
+        if (!encoder.matches(otp, hash)) {
+            // Handle Failure
+            long attempts = otpStore.incrAttempts("attempts:" + key, (int) OTP_TTL.getSeconds());
+            if (attempts >= MAX_ATTEMPTS) {
+                otpStore.setLock(key, (int) LOCK_DURATION.getSeconds());
+                otpStore.deleteOtp(key);
+                throw new IllegalStateException("account_locked");
+            }
+            throw new IllegalArgumentException("invalid");
+        }
 
         // --- SUCCESS ---
         otpStore.deleteOtp(key);
