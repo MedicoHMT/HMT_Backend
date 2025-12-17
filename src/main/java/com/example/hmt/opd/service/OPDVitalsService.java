@@ -1,7 +1,5 @@
 package com.example.hmt.opd.service;
 
-import com.example.hmt.core.auth.model.User;
-import com.example.hmt.core.auth.repository.UserRepository;
 import com.example.hmt.core.handler.exception.ResourceNotFoundException;
 import com.example.hmt.opd.dto.request.OPDVitalRequestDTO;
 import com.example.hmt.opd.dto.response.OPDVitalResponseDTO;
@@ -11,24 +9,18 @@ import com.example.hmt.opd.model.OPDVitals;
 import com.example.hmt.opd.repository.OPDVisitRepository;
 import com.example.hmt.opd.repository.OPDVitalsRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
 
 @Service
 public class OPDVitalsService {
     private final OPDVitalsRepository vitalsRepository;
     private final OPDVisitRepository visitRepository;
-    private final UserRepository userRepository;
 
     public OPDVitalsService(
             OPDVitalsRepository vitalsRepository,
-            OPDVisitRepository visitRepository,
-            UserRepository userRepository) {
+            OPDVisitRepository visitRepository) {
         this.vitalsRepository = vitalsRepository;
         this.visitRepository = visitRepository;
-        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -36,10 +28,6 @@ public class OPDVitalsService {
         OPDVisit opdVisit = visitRepository.findByOpdVisitIdAndHospital_Id(
                         vitalsDTO.getOpdVisitId(), hospitalId)
                 .orElseThrow(() -> new ResourceNotFoundException("OPD Visit Not Found"));
-
-        User user = userRepository.findByUsername(
-                        SecurityContextHolder.getContext().getAuthentication().getName())
-                .orElseThrow(() -> new ResourceNotFoundException("User not authenticated properly"));
 
         OPDVitals vitals = OPDVitals.builder()
                 .opdVisit(opdVisit)
@@ -51,8 +39,6 @@ public class OPDVitalsService {
                 .respirationRate(vitalsDTO.getRespirationRate())
                 .weight(vitalsDTO.getWeight())
                 .height(vitalsDTO.getHeight())
-                .recordedAt(Instant.now())
-                .recordedBy(user)
                 .build();
 
         vitalsRepository.save(vitals);

@@ -1,14 +1,11 @@
 package com.example.hmt.opd.model;
 
-import com.example.hmt.core.auth.model.User;
 import com.example.hmt.core.tenant.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 @Data
 @Entity
@@ -44,11 +41,4 @@ public class OPDAssessment extends BaseEntity {
 
     @Column(name = "notes")
     private String notes;
-
-    @Column(name = "recorded_at")
-    private Instant recordedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recorded_by", foreignKey = @ForeignKey(name = "fk_opd_assessment_recorded_by"))
-    private User recordedBy;
 }

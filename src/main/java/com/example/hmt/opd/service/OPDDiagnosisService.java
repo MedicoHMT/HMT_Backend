@@ -19,15 +19,12 @@ import java.time.Instant;
 public class OPDDiagnosisService {
     private final OPDDiagnosisRepository diagnosisRepository;
     private final OPDVisitRepository visitRepository;
-    private final UserRepository userRepository;
 
     public OPDDiagnosisService(
             OPDDiagnosisRepository diagnosisRepository,
-            OPDVisitRepository visitRepository,
-            UserRepository userRepository) {
+            OPDVisitRepository visitRepository) {
         this.diagnosisRepository = diagnosisRepository;
         this.visitRepository = visitRepository;
-        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -35,16 +32,11 @@ public class OPDDiagnosisService {
         OPDVisit opdVisit = visitRepository.findByOpdVisitIdAndHospital_Id(
                         diagnosisDTO.getOpdVisitId(), hospitalId)
                 .orElseThrow(() -> new RuntimeException("OPD Visit Not Found"));
-        User user = userRepository.findByUsername(
-                        SecurityContextHolder.getContext().getAuthentication().getName())
-                .orElseThrow(() -> new RuntimeException("User Not Found"));
 
         OPDDiagnosis diagnosis = OPDDiagnosis.builder()
                 .opdVisit(opdVisit)
                 .icd10Code(diagnosisDTO.getIcd10Code())
                 .description(diagnosisDTO.getDescription())
-                .recordedAt(Instant.now())
-                .recordedBy(user)
                 .build();
 
         diagnosisRepository.save(diagnosis);

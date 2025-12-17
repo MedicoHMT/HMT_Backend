@@ -1,6 +1,5 @@
 package com.example.hmt.opd.model;
 
-import com.example.hmt.core.auth.model.User;
 import com.example.hmt.core.tenant.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
@@ -9,8 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 @Data
 @Entity
@@ -68,13 +65,6 @@ public class OPDVitals extends BaseEntity {
     @Min(0)
     @Max(500)
     private Double height;
-
-    @Column(name = "recorded_at")
-    private Instant recordedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recorded_by", foreignKey = @ForeignKey(name = "fk_opd_vital_recorded_by"))
-    private User recordedBy;
 
     public Long getHospitalId() {
         return super.getHospitalId();
