@@ -7,6 +7,7 @@ public class RegisterDoctorPerHospitalDTO {
     private String username;
     private String email;
     private String firstName;
+    private String middleName;
     private String lastName;
     private Long phoneNumber;
     private int consultation_fee;

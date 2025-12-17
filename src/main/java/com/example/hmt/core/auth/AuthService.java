@@ -10,6 +10,7 @@ import com.example.hmt.core.auth.repository.UserRepository;
 import com.example.hmt.core.config.RolePermissionConfig;
 import com.example.hmt.core.tenant.Hospital;
 import com.example.hmt.core.tenant.HospitalRepository;
+import com.example.hmt.core.tenant.Name;
 import com.example.hmt.core.tenant.TenantContext;
 import com.example.hmt.department.model.Department;
 import com.example.hmt.department.repository.DepartmentRepository;
@@ -61,12 +62,17 @@ public class AuthService {
                 .build();
         hospital = hospitalRepository.save(hospital);
 
+        Name name = Name.builder()
+                .firstName(dto.getFirstName())
+                .middleName(dto.getMiddleName())
+                .lastName(dto.getLastName())
+                .build();
+
         // Build and save user (admin) — assign all permissions
         User admin = User.builder()
                 .username(dto.getUsername())
                 .email(dto.getEmail())
-                .firstName(dto.getFirstName())
-                .lastName(dto.getLastName())
+                .name(name)
                 .phoneNumber(dto.getPhoneNumber())
                 .role(Role.ADMIN)
                 .hospital(hospital)
@@ -89,11 +95,16 @@ public class AuthService {
 
         Set<UserPermission> initialPerms = RolePermissionConfig.getDefaultsFor(dto.getRole());
 
+        Name name = Name.builder()
+                .firstName(dto.getFirstName())
+                .middleName(dto.getMiddleName())
+                .lastName(dto.getLastName())
+                .build();
+
         User user = User.builder()
                 .username(dto.getUsername())
                 .email(dto.getEmail())
-                .firstName(dto.getFirstName())
-                .lastName(dto.getLastName())
+                .name(name)
                 .phoneNumber(dto.getPhoneNumber())
                 .hospital(admin.getHospital())
                 .role(dto.getRole())
@@ -132,6 +143,7 @@ public class AuthService {
                 dto.getUsername(),
                 dto.getEmail(),
                 dto.getFirstName(),
+                dto.getMiddleName(),
                 dto.getLastName(),
                 dto.getPhoneNumber(),
                 Role.DOCTOR,
@@ -182,17 +194,23 @@ public class AuthService {
     private User createAndSaveUser(String username,
                                    String email,
                                    String firstName,
+                                   String middleName,
                                    String lastName,
                                    Long phoneNumber,
                                    Role role,
                                    Hospital hospital,
                                    Set<UserPermission> permissions) {
 
+        Name name = Name.builder()
+                .firstName(firstName)
+                .middleName(middleName)
+                .lastName(lastName)
+                .build();
+
         User user = User.builder()
                 .username(username)
                 .email(email)
-                .firstName(firstName)
-                .lastName(lastName)
+                .name(name)
                 .phoneNumber(phoneNumber)
                 .role(role)
                 .hospital(hospital)

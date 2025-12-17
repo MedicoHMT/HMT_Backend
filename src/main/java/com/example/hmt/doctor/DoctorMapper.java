@@ -7,8 +7,9 @@ public class DoctorMapper {
     public static DoctorResponseDTO toDoctorResponseDto(Doctor doctor) {
         return DoctorResponseDTO.builder()
                 .doctorId(doctor.getDoctorId())
-                .firstName(doctor.getUser().getFirstName())
-                .lastName(doctor.getUser().getLastName())
+                .firstName(doctor.getUser().getName().getFirstName())
+                .middleName(doctor.getUser().getName().getMiddleName())
+                .lastName(doctor.getUser().getName().getLastName())
                 .specialization(doctor.getSpecialization())
                 .consultationFee(doctor.getConsultation_fee())
                 .department(DepartmentMapper.toDepartmentRequestDTO(doctor.getDepartment()))

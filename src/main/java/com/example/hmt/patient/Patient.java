@@ -1,7 +1,9 @@
 package com.example.hmt.patient;
 
 import com.example.hmt.core.enums.Gender;
+import com.example.hmt.core.tenant.Address;
 import com.example.hmt.core.tenant.BaseEntity;
+import com.example.hmt.core.tenant.Name;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -28,12 +30,8 @@ public class Patient extends BaseEntity {
     @Column(name = "uhid", unique = true)
     private String uhid;
 
-    @NotBlank(message = "First name cannot be blank")
-    @Size(min = 2, message = "First name must be at least 2 characters")
-    private String firstName;
-
-    @NotBlank(message = "Last name cannot be blank")
-    private String lastName;
+    @Embedded
+    private Name name;
 
     private LocalDate dateOfBirth;
     private Gender gender;
@@ -43,7 +41,9 @@ public class Patient extends BaseEntity {
     @Size(min = 10, max = 15, message = "Contact number must be between 10 and 15 digits")
     private String contactNumber;
 
-    private String address;
+    @Embedded
+    private Address address;
+
     private String photoURL;
 
     private String emergencyContactName;

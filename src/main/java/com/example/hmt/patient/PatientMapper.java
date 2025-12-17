@@ -9,13 +9,14 @@ public class PatientMapper {
 
         PatientResponseDTO d = new PatientResponseDTO();
         d.setUhid(p.getUhid());
-        d.setFirstName(p.getFirstName());
-        d.setLastName(p.getLastName());
+        d.setFirstName(p.getName().getFirstName());
+        d.setMiddleName(p.getName().getMiddleName());
+        d.setLastName(p.getName().getLastName());
         d.setDateOfBirth(p.getDateOfBirth());
         d.setGender(p.getGender());
         d.setEmail(p.getEmail());
         d.setContactNumber(p.getContactNumber());
-        d.setAddress(p.getAddress());
+        d.setAddress(p.getAddress().getFullAddress());
         d.setPhotoURL(p.getPhotoURL());
         d.setEmergencyContactName(p.getEmergencyContactName());
         d.setEmergencyContactNumber(p.getEmergencyContactNumber());

@@ -1,6 +1,7 @@
 package com.example.hmt.core.auth.model;
 
 import com.example.hmt.core.tenant.Hospital;
+import com.example.hmt.core.tenant.Name;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,8 +48,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
 
-    private String firstName;
-    private String lastName;
+    private Name name;
 
     @Column(name = "phone_number")
     private Long phoneNumber;

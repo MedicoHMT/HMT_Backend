@@ -4,6 +4,7 @@ import com.example.hmt.core.tenant.TenantContext;
 import com.example.hmt.opd.dto.OPDVisitRequestDTO;
 import com.example.hmt.opd.dto.OPDVisitResponseDTO;
 import com.example.hmt.opd.dto.OPDVisitStatusUpdateDTO;
+import com.example.hmt.opd.dto.response.OPDDetailedVisitResponseDTO;
 import com.example.hmt.opd.service.OPDVisitService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -49,6 +50,15 @@ public class OPDVisitController {
         Long hospitalId = TenantContext.getHospitalId();
         List<OPDVisitResponseDTO> visits = visitService.getAllVisitByUhidAndHospitalId(uhid, hospitalId);
         return ResponseEntity.ok(visits);
+    }
+
+    @GetMapping("/detail/{opdVisitId}")
+    public ResponseEntity<OPDDetailedVisitResponseDTO> getVisitDetailByOpdVisitId(
+            @PathVariable("opdVisitId") String opdVisitId) {
+        Long hospitalId = TenantContext.getHospitalId();
+        return visitService.getOPDDetailedVisitByOPDVisitId(opdVisitId, hospitalId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/status/{opdVisitId}")
